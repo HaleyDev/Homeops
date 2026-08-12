@@ -1,0 +1,55 @@
+name: My Workflow
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:          # 手动触发：在 Actions 页面点击运行
+
+jobs:
+  lint:
+    name: Lint Stage
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint
+        run: |
+          echo "==> [lint] checking code style..."
+          echo "==> [lint] no issues found ✓"
+          echo "==> [lint] done"
+
+  build:
+    name: Build Stage
+    needs: lint               # 等 lint 通过才跑
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run build
+        run: |
+          echo "==> [build] installing dependencies..."
+          echo "==> [build] compiling artifacts..."
+          echo "==> [build] build finished ✓"
+
+  test:
+    name: Test Stage
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          echo "==> [test] running unit tests..."
+          echo "==> [test] running integration tests..."
+          echo "==> [test] all tests passed ✓"
+
+  deploy:
+    name: Deploy Stage
+    needs: test
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run deploy
+        run: |
+          echo "==> [deploy] packaging release..."
+          echo "==> [deploy] deploying to server..."
+          echo "==> [deploy] deployment successful ✓"
