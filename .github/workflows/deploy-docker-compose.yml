@@ -1,0 +1,28 @@
+name: Deploy (docker compose)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # 手动触发
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      # .env 含 MySQL 机密，不进 git；需预先放在 runner 机器上
+      - name: 准备 .env
+        run: cp ~/homeops-secrets/.env .env
+
+      # 只构建不启动：失败时不影响正在运行的旧服务
+      - name: 构建镜像
+        run: docker compose build
+
+      - name: 部署启动
+        run: docker compose up -d
+
+      - name: 健康检查
+        run: |
+          sleep 3
+          curl -sf http://localhost:9000/ > /dev/null

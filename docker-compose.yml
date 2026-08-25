@@ -1,6 +1,19 @@
 services:
+  frontend:
+    image: homeops-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    ports:
+      - "9000:80"
+    depends_on:
+      - backend
+
   backend:
     image: homeops-backend:latest
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
     ports:
       - "8000:8000"
     volumes:
