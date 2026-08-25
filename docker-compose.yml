@@ -16,9 +16,6 @@ services:
       dockerfile: ../docker/backend/Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/homeops
-    command: sh -c "pip install -r requirements.txt && tail -f /dev/null"
     env_file:
       - .env
     environment:
