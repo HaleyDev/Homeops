@@ -1,0 +1,26 @@
+name: Deploy (docker compose)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: read .env
+        run: cp /home/haley/env_dir/homeops/.env .env
+
+      - name: pull docker images
+        run: docker compose pull
+
+      - name: deploy docker compose
+        run: docker compose up -d
+
+      - name: 健康检查
+        run: |
+          sleep 3
+          curl -sf http://localhost:9000/ > /dev/null
