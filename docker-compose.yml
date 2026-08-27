@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: homeops-frontend:latest
+    image: 192.168.199.123:2233/homeops/homeops-frontend:latest
     build:
       context: ./frontend
       dockerfile: ../docker/frontend/Dockerfile
@@ -10,7 +10,7 @@ services:
       - backend
 
   backend:
-    image: homeops-backend:latest
+    image: 192.168.199.123:2233/homeops/homeops-backend:latest
     build:
       context: ./backend
       dockerfile: ../docker/backend/Dockerfile

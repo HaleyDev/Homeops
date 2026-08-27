@@ -3,7 +3,7 @@ name: Deploy (docker compose)
 on:
   push:
     branches: [main]
-  workflow_dispatch: # 手动触发
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,15 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # .env 含 MySQL 机密，不进 git；需预先放在 runner 机器上
-      - name: 准备 .env
-        run: cp ~/homeops-secrets/.env .env
+      - name: read .env
+        run: cp /home/haley/env_dir/homeops/.env .env
 
-      # 只构建不启动：失败时不影响正在运行的旧服务
-      - name: 构建镜像
-        run: docker compose build
+      - name: pull docker images
+        run: docker compose pull
 
-      - name: 部署启动
+      - name: deploy docker compose
         run: docker compose up -d
 
       - name: 健康检查
