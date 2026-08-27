@@ -1,11 +1,21 @@
 services:
+  frontend:
+    image: 192.168.199.123:2233/homeops/homeops-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    ports:
+      - "9000:80"
+    depends_on:
+      - backend
+
   backend:
-    image: homeops-backend:latest
+    image: 192.168.199.123:2233/homeops/homeops-backend:latest
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/homeops
-    command: sh -c "pip install -r requirements.txt && tail -f /dev/null"
     env_file:
       - .env
     environment:
