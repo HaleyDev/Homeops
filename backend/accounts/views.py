@@ -169,9 +169,9 @@ class GitLabOIDCCallbackView(OIDCAuthenticationCallbackView):
     签发逻辑与 LoginView 完全一致：RefreshToken.for_user(user)，
     refresh token 写入 HttpOnly Cookie，再 302 回前端中转页。
 
-    成功/失败统一 302 到前端 /auth/redirect：
+    成功/失败统一 302 到前端中转页（hash 路由地址 /#/auth/redirect）：
     - 成功：不带参数，前端用 refresh cookie 换 accessToken
-    - 失败：带 ?error=oidc_failed，前端展示错误后引导回登录页
+    - 失败：带 ?error=oidc_failed（参数置于 # 之前），前端展示错误后引导回登录页
 
     注意：此处不使用 Django session 登录态（auth.login），
     本系统后续所有鉴权走 SimpleJWT，与现有 LoginView 保持一致。
@@ -184,9 +184,17 @@ class GitLabOIDCCallbackView(OIDCAuthenticationCallbackView):
         return response
 
     def login_failure(self):
-        return redirect(self._frontend_redirect_url() + '?error=oidc_failed')
+        return redirect(self._frontend_redirect_url(error='oidc_failed'))
 
     @staticmethod
-    def _frontend_redirect_url():
-        """前端 OIDC 中转页地址（由 FRONTEND_URL 拼接）"""
-        return settings.FRONTEND_URL.rstrip('/') + '/auth/redirect'
+    def _frontend_redirect_url(error=None):
+        """前端 OIDC 中转页地址（由 FRONTEND_URL 拼接）。
+
+        前端使用 hash 路由（createWebHashHistory）：
+        - 中转页路由必须放在 # 之后，vue-router 才能匹配到 AuthRedirect；
+        - error 参数放在 # 之前，中转页才能通过 window.location.search 读到。
+        """
+        base = settings.FRONTEND_URL.rstrip('/')
+        if error:
+            return f'{base}/?error={error}#/auth/redirect'
+        return f'{base}/#/auth/redirect'
