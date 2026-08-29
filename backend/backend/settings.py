@@ -27,7 +27,20 @@ SECRET_KEY = 'django-insecure-$n)8so3ujc4u!gfl(w4ss(wwxr08)o-xivkydre+%fhyr_3#2k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# 允许的 Host（逗号分隔），默认 * 放行所有（内网部署）；
+# 如需收紧可设置环境变量，如 ALLOWED_HOSTS=192.168.199.123,localhost
+ALLOWED_HOSTS = [
+    host for host in os.environ.get('ALLOWED_HOSTS', '*').split(',') if host
+]
+
+# 跨域配置（django-cors-headers）
+CORS_ALLOWED_ORIGINS = [
+    origin
+    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    if origin
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
@@ -41,12 +54,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 第三方应用
     'rest_framework',
+    'corsheaders',
+    'mozilla_django_oidc',
     # 本项目应用
     'accounts',
 ]
+AUTH_USER_MODEL = 'accounts.User'
+
+# 认证后端：GitLab OIDC 在前，账号密码（ModelBackend）兜底，
+AUTHENTICATION_BACKENDS = (
+    'accounts.oidc_auth.GitLabOIDCBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -129,6 +152,35 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+
+# GitLab OIDC 登录配置（mozilla-django-oidc）
+# https://mozilla-django-oidc.readthedocs.io/
+
+# GitLab 实例端点（已通过 /.well-known/openid-configuration 核实，
+# GitLab 地址变化时改这里）
+OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://192.168.199.123:9090/oauth/authorize'
+OIDC_OP_TOKEN_ENDPOINT = 'http://192.168.199.123:9090/oauth/token'
+OIDC_OP_USER_ENDPOINT = 'http://192.168.199.123:9090/oauth/userinfo'
+OIDC_OP_JWKS_ENDPOINT = 'http://192.168.199.123:9090/oauth/discovery/keys'
+
+# 应用凭证：从 GitLab 应用页面获取，通过 .env 注入，勿写死
+OIDC_RP_CLIENT_ID = os.environ.get('OIDC_RP_CLIENT_ID', '')
+OIDC_RP_CLIENT_SECRET = os.environ.get('OIDC_RP_CLIENT_SECRET', '')
+
+# GitLab 使用 RS256 签名 id_token，公钥从 JWKS 端点获取
+OIDC_RP_SIGN_ALGO = 'RS256'
+
+# scopes：read_api 供 userinfo / 群组角色查询使用
+OIDC_RP_SCOPES = 'openid profile email read_api'
+
+# 回调路由的反解名称：路由挂在 accounts 应用下（带命名空间），
+# 库默认值无命名空间，必须显式指定，否则 reverse 失败
+OIDC_AUTHENTICATION_CALLBACK_URL = 'accounts:oidc_authentication_callback'
+
+# 登录成功后跳回的前端地址（浏览器整页 302 的目标，
+# 前端中转页会用 cookie 里的 refresh token 换 accessToken）
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://192.168.199.123:9000/')
 
 
 # Internationalization

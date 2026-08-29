@@ -1,23 +1,12 @@
-"""accounts 应用的路由
-
-挂载方式（backend/urls.py 中统一挂载在 /api 前缀下）:
-    path('api/', include([
-        path('', include('accounts.urls')),
-    ]))
-
-本文件只定义 accounts 自己的业务路径，不带 api 前缀。
-最终 URL 与 Vben Admin 前端约定保持一致，均为无尾斜杠：
-    POST /api/auth/login     登录
-    POST /api/auth/refresh   刷新 accessToken
-    POST /api/auth/logout    退出登录
-    GET  /api/auth/codes     获取权限码
-    GET  /api/auth/me        获取当前用户信息（调试用）
-    GET  /api/user/info      获取用户信息（Vben Admin）
-"""
 from django.urls import path
+from mozilla_django_oidc.views import (
+    OIDCAuthenticationRequestView,
+    OIDCLogoutView,
+)
 
 from .views import (
     CodesView,
+    GitLabOIDCCallbackView,
     LoginView,
     LogoutView,
     MeView,
@@ -34,4 +23,16 @@ urlpatterns = [
     path('auth/codes', CodesView.as_view(), name='auth-codes'),
     path('auth/me', MeView.as_view(), name='auth-me'),
     path('user/info', UserInfoView.as_view(), name='user-info'),
+    # GitLab OIDC 登录
+    path(
+        'oidc/authenticate',
+        OIDCAuthenticationRequestView.as_view(),
+        name='oidc_authentication_init',
+    ),
+    path(
+        'oidc/callback',
+        GitLabOIDCCallbackView.as_view(),
+        name='oidc_authentication_callback',
+    ),
+    path('oidc/logout', OIDCLogoutView.as_view(), name='oidc_logout'),
 ]

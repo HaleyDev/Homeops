@@ -1,0 +1,47 @@
+# GitLab CI
+# Runner: gti-host（跑在部署服务器 192.168.199.123 本机）
+#
+# 两个独立 job：
+# - build-and-push：手动触发（GitLab 页面 Run pipeline），构建并推送镜像
+# - deploy：push 到 main 自动触发，拉取最新镜像并部署
+# 两者互不干扰：手动跑 pipeline 只会 build；push 代码只会 deploy
+
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY: 192.168.199.123:2233
+  BACKEND_IMAGE: $REGISTRY/homeops/homeops-backend:latest
+  FRONTEND_IMAGE: $REGISTRY/homeops/homeops-frontend:latest
+
+workflow:
+  rules:
+    # 手动触发（Run pipeline）或 push 到 main 时才创建流水线
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_COMMIT_BRANCH == "main"
+
+build-and-push:
+  stage: build
+  tags: [gti-host]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+  script:
+    - docker build -f docker/backend/Dockerfile -t $BACKEND_IMAGE backend
+    - docker build -f docker/frontend/Dockerfile -t $FRONTEND_IMAGE frontend
+    - docker push $BACKEND_IMAGE
+    - docker push $FRONTEND_IMAGE
+
+deploy:
+  stage: deploy
+  tags: [gti-host]
+  rules:
+    # 仅 push 到 main 时执行，手动 Run pipeline 不会触发部署
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
+  script:
+    # 服务器上维护的 .env（含数据库密码、OIDC 凭证等，不进仓库）
+    - cp /home/haley/env_dir/homeops/.env .env
+    - docker compose pull
+    - docker compose up -d
+  environment:
+    name: production
