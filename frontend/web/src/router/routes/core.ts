@@ -57,6 +57,17 @@ const coreRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        // GitLab OIDC 登录中转页：coreRoutes 整树免权限拦截，
+        // 后端回调 302 到 /auth/redirect，此页面用 Cookie 换 accessToken 完成登录
+        name: 'AuthRedirect',
+        path: 'redirect',
+        component: () =>
+          import('#/views/_core/authentication/auth-redirect.vue'),
+        meta: {
+          title: 'GitLab 登录',
+        },
+      },
+      {
         name: 'CodeLogin',
         path: 'code-login',
         component: () => import('#/views/_core/authentication/code-login.vue'),

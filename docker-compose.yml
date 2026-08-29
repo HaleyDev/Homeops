@@ -23,6 +23,7 @@ services:
       DB_PORT: "3306"
     depends_on:
       - db
+    restart: unless-stopped
 
   db:
     image: mysql:8.4

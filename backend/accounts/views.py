@@ -1,16 +1,7 @@
-"""
-用户认证接口（适配 Vben Admin 前端）
-
-Vben Admin 前端对后端的约定：
-1. 所有响应使用统一格式: {"code": 0, "data": ..., "message": "..."}
-   - code = 0 表示成功，前端取 data 字段
-   - code != 0 表示业务失败，message 会直接展示给用户（HTTP 状态码保持 200）
-2. 业务字段使用 camelCase（如 accessToken、userId）
-3. Token 过期/无效时返回 HTTP 401，前端会自动跳转登录页或尝试刷新 Token
-4. 刷新 Token 通过 HttpOnly Cookie 传递（前端开启 enableRefreshToken 时使用）
-"""
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.shortcuts import redirect
+from mozilla_django_oidc.views import OIDCAuthenticationCallbackView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -166,3 +157,36 @@ class MeView(APIView):
             'email': user.email,
             'is_superuser': user.is_superuser,
         })
+
+
+class GitLabOIDCCallbackView(OIDCAuthenticationCallbackView):
+    """
+    GitLab OIDC 回调（对接现有 JWT 签发逻辑）
+
+    GET /api/oidc/callback?code=xxx&state=xxx
+    浏览器从 GitLab 重定向回来时命中此视图。到这一步 self.user 已经是
+    OIDC 认证通过、按 GitLabOIDCBackend 逻辑创建/更新完毕的本地 User，
+    签发逻辑与 LoginView 完全一致：RefreshToken.for_user(user)，
+    refresh token 写入 HttpOnly Cookie，再 302 回前端中转页。
+
+    成功/失败统一 302 到前端 /auth/redirect：
+    - 成功：不带参数，前端用 refresh cookie 换 accessToken
+    - 失败：带 ?error=oidc_failed，前端展示错误后引导回登录页
+
+    注意：此处不使用 Django session 登录态（auth.login），
+    本系统后续所有鉴权走 SimpleJWT，与现有 LoginView 保持一致。
+    """
+
+    def login_success(self):
+        refresh = RefreshToken.for_user(self.user)
+        response = redirect(self._frontend_redirect_url())
+        set_refresh_cookie(response, str(refresh))
+        return response
+
+    def login_failure(self):
+        return redirect(self._frontend_redirect_url() + '?error=oidc_failed')
+
+    @staticmethod
+    def _frontend_redirect_url():
+        """前端 OIDC 中转页地址（由 FRONTEND_URL 拼接）"""
+        return settings.FRONTEND_URL.rstrip('/') + '/auth/redirect'
