@@ -27,7 +27,20 @@ SECRET_KEY = 'django-insecure-$n)8so3ujc4u!gfl(w4ss(wwxr08)o-xivkydre+%fhyr_3#2k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# 允许的 Host（逗号分隔），默认 * 放行所有（内网部署）；
+# 如需收紧可设置环境变量，如 ALLOWED_HOSTS=192.168.199.123,localhost
+ALLOWED_HOSTS = [
+    host for host in os.environ.get('ALLOWED_HOSTS', '*').split(',') if host
+]
+
+# 跨域配置（django-cors-headers）
+CORS_ALLOWED_ORIGINS = [
+    origin
+    for origin in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    if origin
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
@@ -41,12 +54,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 第三方应用
     'rest_framework',
+    'corsheaders',
     # 本项目应用
     'accounts',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
