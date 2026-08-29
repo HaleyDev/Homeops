@@ -135,7 +135,7 @@ class UserInfoView(APIView):
             'avatar': '',
             'desc': 'HomeOps 管理员' if user.is_superuser else '普通用户',
             'roles': roles,
-            'homePath': '/dashboard',
+            'homePath': '/home',
         })
 
 
