@@ -14,6 +14,7 @@ variables:
   REGISTRY: 192.168.199.123:2233
   BACKEND_IMAGE: $REGISTRY/homeops/homeops-backend:latest
   FRONTEND_IMAGE: $REGISTRY/homeops/homeops-frontend:latest
+  GIT_CLEAN_FLAGS: -ffdx -e docker/mysql/
 
 workflow:
   rules:
