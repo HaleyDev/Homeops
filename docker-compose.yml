@@ -21,6 +21,13 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: "3306"
+    volumes:
+      - ./backend:/homeops
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     depends_on:
       - db
     restart: unless-stopped
