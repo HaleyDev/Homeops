@@ -40,6 +40,13 @@ const harborLogo: ServiceIcon = {
   width: 24,
 };
 
+/** Headlamp 官方 logo（selfhst/icons，灯体 currentColor + 黄色灯光 #fff200） */
+const headlampLogo: ServiceIcon = {
+  body: '<path fill="currentColor" d="M460 324.9V204.7l-31.8-41.5v-70L326.1 56.6V0H185.9v56.6l-102 36.6v69.9L52 204.7V325l31.8 42.9L52 466.8L256.1 512L460 466.8l-31.8-98.9z"/><path fill="#fff200" d="M256.1 367.9c56.3 0 102.1-45.8 102.1-102.1s-45.8-102.1-102.1-102.1S154 209.5 154 265.8s45.9 102.1 102.1 102.1"/>',
+  height: 512,
+  width: 512,
+};
+
 export const serviceItems: ServiceItem[] = [
   {
     title: 'GitLab',
@@ -54,5 +61,12 @@ export const serviceItems: ServiceItem[] = [
     icon: harborLogo,
     color: '#60B932',
     url: 'http://192.168.199.123:2233',
+  },
+  {
+    title: 'Headlamp',
+    description: 'Kubernetes 集群面板',
+    icon: headlampLogo,
+    color: '#333333',
+    url: 'http://192.168.199.123:30466/c/main/nodes',
   },
 ];
