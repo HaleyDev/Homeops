@@ -78,3 +78,4 @@ skills-lock.json
 datalog
 .playwright-mcp
 docs/*
+backend/.vscode/*

@@ -11,8 +11,11 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
+
+import structlog
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +59,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'mozilla_django_oidc',
+    'django_structlog',
     # 本项目应用
     'accounts',
 ]
@@ -76,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -207,5 +212,83 @@ STATIC_URL = 'static/'
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+    },
+}
+
+_LOG_RENDERER = (
+    structlog.dev.ConsoleRenderer(colors=sys.stderr.isatty())
+    if DEBUG
+    else structlog.processors.JSONRenderer()
+)
+
+_STRUCTLOG_PROCESSORS = [
+    structlog.contextvars.merge_contextvars,
+    structlog.stdlib.filter_by_level,
+    structlog.stdlib.add_logger_name,
+    structlog.stdlib.add_log_level,
+    structlog.stdlib.PositionalArgumentsFormatter(),
+    structlog.processors.TimeStamper(fmt='iso'),
+    structlog.processors.StackInfoRenderer(),
+    structlog.processors.format_exc_info,
+    structlog.processors.UnicodeDecoder(),
+    structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+]
+
+_STRUCTLOG_FOREIGN_PRE_CHAIN = [
+    structlog.contextvars.merge_contextvars, 
+    structlog.stdlib.add_logger_name,
+    structlog.stdlib.add_log_level,
+    structlog.stdlib.ExtraAdder(),
+    structlog.processors.TimeStamper(fmt='iso'),
+    structlog.processors.StackInfoRenderer(),
+    structlog.processors.format_exc_info,
+    structlog.processors.UnicodeDecoder(),
+]
+
+structlog.configure(
+    processors=_STRUCTLOG_PROCESSORS,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+_LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'structlog': {
+            '()': structlog.stdlib.ProcessorFormatter,
+            'processor': _LOG_RENDERER,
+            'foreign_pre_chain': _STRUCTLOG_FOREIGN_PRE_CHAIN,
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'structlog',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': _LOG_LEVEL,
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': _LOG_LEVEL,
+            'propagate': False,
+        },
+        'django_structlog': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'accounts': {
+            'handlers': ['console'],
+            'level': _LOG_LEVEL,
+            'propagate': False,
+        },
     },
 }

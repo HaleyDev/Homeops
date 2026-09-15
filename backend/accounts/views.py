@@ -7,9 +7,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+import structlog
 
 REFRESH_TOKEN_COOKIE = 'homeops_refresh_token'
 
+logger = structlog.get_logger(__name__) 
 
 def ok(data=None, message='OK'):
     """成功响应：{"code": 0, "data": ..., "message": "OK"}"""
@@ -139,6 +141,12 @@ class CodesView(APIView):
     """
 
     def get(self, request):
+        logger.info(
+            'codes_requested',
+            username=request.user.username,
+            is_superuser=request.user.is_superuser,
+        )
+        logger.debug('codes_empty_response', reason='暂无权限码体系')
         return ok([])
 
 
@@ -178,12 +186,22 @@ class GitLabOIDCCallbackView(OIDCAuthenticationCallbackView):
     """
 
     def login_success(self):
+        logger.info(
+            'oidc_login_success',
+            user_id=self.user.id,
+            username=self.user.username,
+        )
         refresh = RefreshToken.for_user(self.user)
         response = redirect(self._frontend_redirect_url())
         set_refresh_cookie(response, str(refresh))
         return response
 
     def login_failure(self):
+        logger.error(
+            'oidc_login_failure',
+            error=self.request.GET.get('error', 'unknown'),
+            error_description=self.request.GET.get('error_description', ''),
+        )
         return redirect(self._frontend_redirect_url(error='oidc_failed'))
 
     @staticmethod
