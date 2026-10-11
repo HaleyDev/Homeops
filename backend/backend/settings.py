@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'django_structlog',
     # 本项目应用
     'accounts',
+    'ai_assistant',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 

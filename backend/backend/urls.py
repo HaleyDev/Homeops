@@ -14,5 +14,6 @@ urlpatterns = [
     # 各应用内部只定义自己的业务路径（如 auth/、user/），不写 api 前缀
     path('api/', include([
         path('', include('accounts.urls')),
+        path('ai/', include('ai_assistant.urls')),
     ])),
 ]
