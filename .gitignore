@@ -80,3 +80,4 @@ datalog
 docs/*
 backend/.vscode/*
 docker/elasticsearch/*
+backend/.env

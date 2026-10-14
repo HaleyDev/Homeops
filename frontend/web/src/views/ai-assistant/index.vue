@@ -209,9 +209,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- 高度按 Vben 布局(头部 + 标签栏 + 内边距)预留,可按实际主题微调 -->
+  <!-- 高度按 Vben 布局(头部 + 标签栏 + 内边距)预留,可按实际主题微调;
+       bg-muted/50:浅色下给白卡片垫出灰色底衬,否则白上叠白全靠细边框区分 -->
   <div
-    class="ai-assistant-page flex h-[calc(100vh-120px)] min-h-[480px] w-full gap-3"
+    class="bg-muted/50 ai-assistant-page flex h-[calc(100vh-120px)] min-h-[480px] w-full gap-3 rounded-xl p-2"
   >
     <!-- 左侧:会话列表 -->
     <aside
@@ -296,9 +297,11 @@ onBeforeUnmount(() => {
   height: 16px !important;
 }
 
-/* 输入框容器:库默认 8px 圆角,加大到 12px 更柔和 */
+/* 输入框容器:库默认 8px 圆角、border-width 0(白底白框看不见),加大圆角并补边框 */
 .ai-assistant-page .elx-x-sender {
   border-radius: 12px;
+  border-width: 1px;
+  border-color: var(--el-border-color);
 }
 
 /* ===== 暗色主题 ===== */

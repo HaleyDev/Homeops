@@ -9,7 +9,7 @@ from google.adk.models.lite_llm import LiteLlm
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 MODEL_NAME = os.getenv("ADK_MODEL_NAME", "openai/glm-5.3-flash")
 BASE_URL = os.getenv("ADK_BASE_URL", "https://ark.cn-beijing.volces.com/api/coding/v3")
-API_KEY = os.getenv("ADK_API_KEY")
+API_KEY = os.getenv("ADK_API_KEY", "")
 # ================================================================
 
 

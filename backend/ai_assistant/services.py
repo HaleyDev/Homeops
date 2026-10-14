@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+from urllib.parse import quote_plus
 
 from google.genai import types
 from google.adk.events import Event
@@ -13,9 +15,18 @@ _runner = None
 def get_runner():
     global _session_service, _runner
     if _runner is None:
+        from django.conf import settings as dj_settings
         from google.adk.runners import Runner
-        from google.adk.sessions import InMemorySessionService
-        _session_service = InMemorySessionService()
+        from google.adk.sessions import DatabaseSessionService
+        from sqlalchemy.pool import NullPool
+
+        db = dj_settings.DATABASES["default"]
+        db_url = (
+            f"mysql+aiomysql://{db['USER']}:{quote_plus(db['PASSWORD'])}"
+            f"@{db.get('HOST') or '127.0.0.1'}:{db.get('PORT') or '3306'}/{db['NAME']}"
+            "?charset=utf8mb4"
+        )
+        _session_service = DatabaseSessionService(db_url, poolclass=NullPool)
         _runner = Runner(agent=root_agent, app_name=APP_NAME,
                          session_service=_session_service)
     return _runner, _session_service
