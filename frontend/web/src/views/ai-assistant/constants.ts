@@ -1,21 +1,16 @@
 /**
  * AI 助手页面常量与默认数据。
  *
- * 会话列表仍为本地默认数据(后端暂无会话列表接口,只有对话接口);
- * 对话已对接真实接口 POST /api/ai/chat/(见 src/api/ai)。
+ * 对话已对接真实接口 POST /api/ai/chat/(见 src/api/ai);
+ * 会话列表/消息历史见 src/api/ai(对接后端 ai_assistant 模块)。
  */
-import type { ChatConversation, ChatMessage } from './types';
+import type { ChatMessage } from './types';
 
 /** AI 头像(内联 SVG,无外网依赖) */
 export const AI_AVATAR = buildSvgAvatar('#3b82f6', '🤖');
 
 /** 用户头像(内联 SVG,无外网依赖) */
 export const USER_AVATAR = buildSvgAvatar('#10b981', '🧑');
-
-/** 默认会话列表 */
-export function createDefaultConversations(): ChatConversation[] {
-  return [{ id: 'conv-new', label: '新会话' }];
-}
 
 /** 页面初始欢迎消息 */
 export function createWelcomeMessage(): ChatMessage {

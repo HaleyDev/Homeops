@@ -15,8 +15,8 @@ export type ChatMessage = BubbleListItemProps & {
   role: ChatRole;
 };
 
-/** 左侧会话列表项 */
+/** 左侧会话列表项(字段与后端 ChatSession 对齐) */
 export type ChatConversation = {
-  id: string;
-  label: string;
+  session_id: string;
+  title: string;
 };

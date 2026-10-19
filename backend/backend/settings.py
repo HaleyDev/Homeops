@@ -115,6 +115,7 @@ DATABASES = {
         'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'homeops123'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {'charset': 'utf8mb4'},  # 防 4 字节 emoji 落库报错 (LLM 输出常见)
     }
 }
 

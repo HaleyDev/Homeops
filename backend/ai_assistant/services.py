@@ -70,7 +70,7 @@ async def _a_chat_stream(runner, session_service, user_id, session_id, message):
 
 
 def chat_stream(user_id: str, session_id: str, message: str):
-    """同步生成器 (uWSGI 是同步世界): 自管事件循环, 逐事件翻译成 SSE 帧。"""
+    """自管事件循环, 逐事件翻译成 SSE 帧。"""
     runner, session_service = get_runner()
     yield _sse("session", {"session_id": session_id})
     loop = asyncio.new_event_loop()
