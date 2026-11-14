@@ -2,14 +2,11 @@
 import type {
   BubbleListProps,
 } from 'vue-element-plus-x/types/BubbleList';
-import type {
-  ConversationItem,
-  ConversationMenu,
-  ConversationMenuCommand,
-} from 'vue-element-plus-x/types/Conversations';
+import type { ConversationItem } from 'vue-element-plus-x/types/Conversations';
 
 import type { ChatConversation, ChatMessage } from './types';
 
+import { IconifyIcon } from '@vben/icons';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { BubbleList, Conversations, XSender } from 'vue-element-plus-x';
 
@@ -80,22 +77,13 @@ function handleConversationChange(item: ConversationItem) {
   void showSessionMessages(id);
 }
 
-/** 侧边栏会话悬浮菜单: 只提供删除(重命名后续接 PATCH) */
-const conversationMenu: ConversationMenu[] = [
-  { label: '删除会话', key: 'delete', command: 'delete' },
-];
-
-/** 菜单命令入口: 目前只处理删除 */
-async function handleConversationMenu(
-  command: ConversationMenuCommand,
-  item: ConversationItem,
-) {
-  if (command !== 'delete') return;
-  await handleDeleteConversation(String(item.id ?? ''));
-}
-
-/** 删除会话: 确认 → 调后端 → 从列表移除; 删的是当前会话则切到第一个或复位 */
+/** 删除会话: 确认 → 调后端 → 清理该会话的流和缓存; 当前会话被删则切到下一个 */
 function handleDeleteConversation(targetId: string) {
+  if (!targetId) {
+    message.error('会话标识无效，请刷新后重试');
+    return;
+  }
+
   dialog.warning({
     title: '删除会话',
     content: '确定删除该会话及其全部消息吗？此操作不可恢复。',
@@ -104,16 +92,20 @@ function handleDeleteConversation(targetId: string) {
     onPositiveClick: async () => {
       try {
         await deleteSessionApi(targetId);
+
+        // 无论删除的是否当前会话，都中止对应请求并释放本地缓存。
+        abortControllers.get(targetId)?.abort();
+        abortControllers.delete(targetId);
+        messagesBySession.delete(targetId);
+        if (streamingSessionId.value === targetId) {
+          streamingSessionId.value = null;
+          streamStatus.value = '';
+        }
+
         conversations.value = conversations.value.filter(
           (c) => c.session_id !== targetId,
         );
         if (activeConversation.value === targetId) {
-          // 被删会话若在流式, 一并中止
-          abortControllers.get(targetId)?.abort();
-          abortControllers.delete(targetId);
-          if (streamingSessionId.value === targetId) {
-            streamingSessionId.value = null;
-          }
           const next = conversations.value[0];
           if (next) {
             activeConversation.value = next.session_id;
@@ -126,9 +118,12 @@ function handleDeleteConversation(targetId: string) {
           }
         }
         message.success('会话已删除');
+        return true;
       } catch (error) {
         console.error('[AI] Failed to delete session:', error);
-        message.error('删除会话失败');
+        message.error('删除会话失败，请稍后重试');
+        // 删除失败时保留确认框，避免用户误以为已经删除。
+        return false;
       }
     },
   });
@@ -422,8 +417,6 @@ onBeforeUnmount(() => {
         <Conversations
           v-model:active="activeConversation"
           :items="conversationItems"
-          :label-max-width="150"
-          :menu="conversationMenu"
           :style="{
             backgroundColor: 'transparent',
             height: 'auto',
@@ -431,11 +424,32 @@ onBeforeUnmount(() => {
             width: '100%',
           }"
           row-key="id"
-          show-built-in-menu
-          show-built-in-menu-type="hover"
           @change="handleConversationChange"
-          @menu-command="handleConversationMenu"
-        />
+        >
+          <template #label="{ item }">
+            <div class="flex min-w-0 flex-1 items-center gap-2">
+              <span
+                class="min-w-0 flex-1 truncate"
+                :title="String(item.label ?? '')"
+              >
+                {{ item.label }}
+              </span>
+              <button
+                :aria-label="`删除会话：${item.label ?? ''}`"
+                :title="`删除会话：${item.label ?? ''}`"
+                class="text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-md transition hover:cursor-pointer hover:bg-[var(--el-color-danger-light-9)] hover:text-[var(--el-color-danger)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--el-color-danger)]"
+                type="button"
+                @click.stop="handleDeleteConversation(String(item.id ?? ''))"
+              >
+                <IconifyIcon
+                  aria-hidden="true"
+                  class="size-4"
+                  icon="lucide:trash-2"
+                />
+              </button>
+            </div>
+          </template>
+        </Conversations>
       </div>
     </aside>
 
