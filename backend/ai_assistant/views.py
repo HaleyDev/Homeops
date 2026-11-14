@@ -1,5 +1,4 @@
-import json
-import logging
+from functools import partial
 
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
@@ -14,8 +13,6 @@ from rest_framework.viewsets import ModelViewSet
 from .models import ChatMessage, ChatSession
 from .serializers import ChatMessageSerializer, ChatSessionSerializer
 from .services import chat_stream
-
-logger = logging.getLogger(__name__)
 
 
 class ChatRequestSerializer(serializers.Serializer):
@@ -44,9 +41,11 @@ class ChatView(APIView):
         # --------------------------------------------------------------
 
         resp = StreamingHttpResponse(
-            recording_stream(
-                chat_session,
-                chat_stream(str(request.user.id), session_id, message),
+            chat_stream(
+                str(request.user.id),
+                session_id,
+                message,
+                on_complete=partial(_persist_assistant_message, chat_session),
             ),
             content_type="text/event-stream",
         )
@@ -80,36 +79,14 @@ class ChatSessionViewSet(ModelViewSet):
         })
 
 
-def _parse_frame(frame: str):
-    """把 chat_stream 产出的单帧解析回 (事件名, 数据dict); 解析不了就返回 (None, None)"""
-    lines = frame.strip().split("\n")
-    if len(lines) < 2 or not lines[0].startswith("event: "):
-        return None, None
-    try:
-        return lines[0][7:].strip(), json.loads(lines[1][6:])   # "data: " 后是单行 JSON
-    except (IndexError, json.JSONDecodeError):
-        return lines[0][7:].strip(), None
+def _persist_assistant_message(chat_session, result):
+    """Persist and serialize the authoritative message for the done event."""
 
-
-def recording_stream(chat_session, upstream):
-    """包住 chat_stream: 帧原样转发; 同时攒 assistant 消息, 见到 done 帧落库"""
-    buf = {"content": "", "thinking": "", "tool_calls": []}
-    for frame in upstream:
-        yield frame                                   # 前端协议零变化
-        event, data = _parse_frame(frame)
-        if data is None:
-            continue
-        if event == "text":
-            buf["content"] += data.get("detail", "")
-        elif event == "thinking":
-            buf["thinking"] += data.get("detail", "")
-        elif event == "tool_call":
-            buf["tool_calls"].append({
-                "name": data.get("name", ""),
-                "args": data.get("args", {}),
-            })
-        elif event == "done":
-            try:
-                ChatMessage.objects.create(session=chat_session, role="assistant", **buf)
-            except Exception:
-                logger.warning("assistant 消息落库失败 session=%s", chat_session.session_id)
+    message = ChatMessage.objects.create(
+        session=chat_session,
+        role=ChatMessage.Role.ASSISTANT,
+        content=result.content,
+        thinking=result.thinking,
+        tool_calls=result.tool_calls,
+    )
+    return ChatMessageSerializer(message).data

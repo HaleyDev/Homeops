@@ -16,12 +16,18 @@ export const USER_AVATAR = buildSvgAvatar('#10b981', '🧑');
 export function createWelcomeMessage(): ChatMessage {
   return {
     key: 'msg-welcome',
+    uiKey: 'msg-welcome',
     role: 'ai',
     placement: 'start',
     variant: 'filled',
     shape: 'round',
     avatar: AI_AVATAR,
     content: '你好,我是 AI 助手。输入问题即可开始对话。',
+    thinking: '',
+    toolCalls: [],
+    processExpanded: false,
+    streaming: false,
+    loading: false,
   };
 }
 

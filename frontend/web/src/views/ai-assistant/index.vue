@@ -5,6 +5,7 @@ import type {
 import type { ConversationItem } from 'vue-element-plus-x/types/Conversations';
 
 import type { ChatConversation, ChatMessage } from './types';
+import type { ChatApiMessage } from '#/api/ai';
 
 import { IconifyIcon } from '@vben/icons';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -27,8 +28,14 @@ import {
   sendChatStreamApi,
 } from '#/api/ai';
 
-import { AI_AVATAR, USER_AVATAR, createWelcomeMessage } from './constants';
-import { renderMarkdown } from './markdown';
+import AssistantMessageContent from './components/assistant-message-content.vue';
+import { createWelcomeMessage } from './constants';
+import {
+  applyAssistantStreamEvent,
+  applyFinalAssistantMessage,
+  finishIncompleteAssistantMessage,
+  normalizeChatMessage,
+} from './message-utils';
 
 defineOptions({ name: 'AiAssistant' });
 
@@ -175,25 +182,13 @@ const senderRef = ref<InstanceType<typeof XSender>>();
 /** 每个会话各自的 AbortController: 取消只影响对应会话, 切换会话不中断 */
 const abortControllers = new Map<string, AbortController>();
 
-/** 后端消息 → 气泡列表(按顺序重建) */
-function toBubbleList(
-  messages: Array<{
-    role: 'user' | 'assistant';
-    content: string;
-    thinking: string;
-    tool_calls: Array<{ name: string; args: Record<string, unknown> }>;
-    created_at: string;
-  }>,
-): MessageList {
-  return messages.map((m, i) => ({
-    key: `hist-${i}`,
-    role: m.role === 'user' ? 'user' : 'ai',
-    placement: m.role === 'user' ? 'end' : 'start',
-    variant: m.role === 'user' ? 'outlined' : 'filled',
-    shape: 'round',
-    avatar: m.role === 'user' ? USER_AVATAR : AI_AVATAR,
-    content: m.content,
-  }));
+/** 历史与流式使用同一归一化入口；数据库 id 只作为业务 id，不替代 UI key。 */
+function toBubbleList(messages: ChatApiMessage[]): MessageList {
+  return messages.map((item, index) =>
+    normalizeChatMessage(item, {
+      uiKey: `hist-${item.id ?? index}`,
+    }),
+  );
 }
 
 /** 展示指定会话: 有缓存直接用; 无缓存先欢迎页, 同时从后端拉历史(已拉过的不再重复请求) */
@@ -262,27 +257,22 @@ async function handleSubmit(value?: unknown) {
   // 追加到"当前会话的消息列表"引用上: 切换会话不会替换这个数组,
   // 后台流继续往里写, 切回来时直接看到累积的回复
   const replyList = messages.value;
-  replyList.push({
-    key: `msg-user-${Date.now()}`,
-    role: 'user',
-    placement: 'end',
-    variant: 'outlined',
-    shape: 'round',
-    avatar: USER_AVATAR,
-    content: question,
-  });
+  messagesBySession.set(curSession, replyList);
+  const userKey = `msg-user-${Date.now()}`;
+  replyList.push(
+    normalizeChatMessage(
+      { role: 'user', content: question },
+      { uiKey: userKey },
+    ),
+  );
 
   const replyKey = `msg-ai-${Date.now()}`;
-  replyList.push({
-    key: replyKey,
-    role: 'ai',
-    placement: 'start',
-    variant: 'filled',
-    shape: 'round',
-    avatar: AI_AVATAR,
-    content: '',
-    loading: true,
-  });
+  replyList.push(
+    normalizeChatMessage(
+      { role: 'assistant', content: '' },
+      { loading: true, streaming: true, uiKey: replyKey },
+    ),
+  );
 
   streamStatus.value = '';
   // 每个会话独立控制器: 取消只影响本会话, 切换会话不中断
@@ -299,29 +289,35 @@ async function handleSubmit(value?: unknown) {
     conversation.title = question.slice(0, 20);
   }
 
-  const appendReplyText = (text: string) => {
-    const target = replyList.find((item) => item.key === replyKey);
-    if (target) {
-      target.loading = false;
-      target.content = String(target.content ?? '') + text;
+  // 所有完成路径都在发起请求的原数组中定位，不能清理用户后来切换到的会话。
+  const findReply = () =>
+    replyList.find((item) => item.uiKey === replyKey || item.key === replyKey);
+  const updateStreamStatus = (status: string) => {
+    if (!controller.signal.aborted && sessionId.value === curSession) {
+      streamStatus.value = status;
     }
   };
-
   const finishReply = () => {
-    const target = replyList.find((item) => item.key === replyKey);
+    const target = findReply();
     if (target) target.loading = false;
-    if (streamingSessionId.value === curSession) {
-      streamingSessionId.value = null;
+    if (abortControllers.get(curSession) === controller) {
       abortControllers.delete(curSession);
     }
-    streamStatus.value = '';
+    if (streamingSessionId.value === curSession) {
+      streamingSessionId.value = null;
+      streamStatus.value = '';
+    }
   };
 
   sendChatStreamApi({
     message: question,
     sessionId: curSession,
     signal: controller.signal,
-    onEvent: ({ data, event }) => {
+    onEvent: (streamEvent) => {
+      const { data, event } = streamEvent;
+      const target = findReply();
+      if (target) applyAssistantStreamEvent(target, streamEvent);
+
       switch (event) {
         case 'session': {
           // 显式会话: 后端回显同一个 id; 仅当仍停留在本会话时才同步(防后台流污染当前视图)
@@ -331,58 +327,65 @@ async function handleSubmit(value?: unknown) {
           break;
         }
         case 'text': {
-          appendReplyText(data.detail ?? '');
+          updateStreamStatus('正在输出…');
           break;
         }
         case 'thinking': {
-          streamStatus.value = '思考中…';
+          updateStreamStatus('思考中…');
           break;
         }
         case 'tool_call': {
-          streamStatus.value = `调用工具:${data.name ?? ''}`;
+          updateStreamStatus(`调用工具:${data.name ?? ''}`);
           break;
         }
         case 'tool_response': {
-          streamStatus.value = '整理结果…';
-          break;
-        }
-        case 'done': {
-          finishReply();
-          break;
-        }
-        case 'error': {
-          console.error(
-            '[AI] Server sent error frame:',
-            data.message ?? '(no message)',
-          );
-          message.error(`AI 服务出错:${data.message ?? '未知错误'}`);
-          finishReply();
+          updateStreamStatus('整理结果…');
           break;
         }
       }
     },
-  }).catch((error: unknown) => {
-    // 主动中断/被替换都先清理本会话的 loading 态
-    finishReply();
-    if ((error as Error)?.name === 'AbortError') return;
-    console.error('[AI] Chat stream error:', error);
-    message.error((error as Error)?.message || 'AI 服务连接失败');
-  });
+  })
+    .then((finalMessage) => {
+      const target = findReply();
+      if (target) applyFinalAssistantMessage(target, finalMessage);
+    })
+    .catch((error: unknown) => {
+      const target = findReply();
+      const aborted = (error as Error)?.name === 'AbortError';
+      const errorMessage = aborted
+        ? '本轮已取消，过程可能不完整'
+        : ((error as Error)?.message || 'AI 服务连接失败，请稍后重试。');
+      if (target) {
+        // 错误直接留在当前助手气泡中；已有正文和过程数据继续保留。
+        finishIncompleteAssistantMessage(target, errorMessage);
+      }
+      // 主动取消只显示气泡内提示，其它错误同时保留控制台日志。
+      if (aborted) return;
+      console.error('[AI] Chat stream error:', error);
+    })
+    .finally(finishReply);
 }
 
 /** 取消当前会话的流式输出(发送框的取消按钮) */
 function handleCancel() {
   const cur = sessionId.value;
-  if (cur) {
-    abortControllers.get(cur)?.abort();
-    abortControllers.delete(cur);
-    if (streamingSessionId.value === cur) {
-      streamingSessionId.value = null;
-    }
+  if (!cur) return;
+
+  abortControllers.get(cur)?.abort();
+  abortControllers.delete(cur);
+  if (streamingSessionId.value === cur) {
+    streamingSessionId.value = null;
   }
   streamStatus.value = '';
-  for (const item of messages.value) {
-    if (item.loading) item.loading = false;
+
+  // 只清理该会话自己的数组；后台请求完成/取消不会影响当前展示会话。
+  const replyList = messagesBySession.get(cur) ?? messages.value;
+  for (const item of replyList) {
+    if (item.streaming) {
+      finishIncompleteAssistantMessage(item, '本轮已取消，过程可能不完整');
+    } else if (item.loading) {
+      item.loading = false;
+    }
   }
 }
 
@@ -459,13 +462,13 @@ onBeforeUnmount(() => {
     >
       <div class="min-h-0 flex-1">
         <BubbleList :list="messages" class="h-full" max-height="100%">
-          <!-- AI 气泡渲染 markdown;用户气泡保持纯文本 -->
+          <!-- AI 过程、Markdown 与工具入口统一渲染；用户气泡保持纯文本 -->
           <template #content="{ item }">
-            <div
+            <AssistantMessageContent
               v-if="item.role === 'ai'"
-              class="md-body"
-              v-html="renderMarkdown(String(item.content ?? ''))"
-            ></div>
+              v-model:process-expanded="item.processExpanded"
+              :message="item"
+            />
             <span v-else class="whitespace-pre-wrap">{{ item.content }}</span>
           </template>
         </BubbleList>

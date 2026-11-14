@@ -1,22 +1,37 @@
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/BubbleList';
 
-/**
- * AI 助手页面类型定义
- * 消息类型在 vue-element-plus-x 的气泡项基础上扩展业务字段,
- * 可直接透传给 BubbleList 的 list 项。
- */
+import type { ChatToolCallStatus } from '#/api/ai';
 
-/** 消息角色 */
-export type ChatRole = 'user' | 'ai';
+/** AI 助手页面类型定义。消息可直接透传给 BubbleList。 */
 
-/** 聊天消息(BubbleList 列表项) */
+export type ChatRole = 'ai' | 'user';
+
+/** 页面统一使用的工具记录；status 缺省表示无法确认的旧历史记录。 */
+export interface AssistantToolCall {
+  args: Record<string, unknown>;
+  id: string;
+  name: string;
+  result?: unknown;
+  status?: ChatToolCallStatus;
+}
+
+/** 聊天消息(BubbleList 列表项)。uiKey 不随 done 返回数据库 id 而改变。 */
 export type ChatMessage = BubbleListItemProps & {
+  content: string;
+  createdAt?: string;
+  id?: number | string;
   key: string;
+  processExpanded: boolean;
   role: ChatRole;
+  streamError?: string;
+  streaming: boolean;
+  thinking: string;
+  toolCalls: AssistantToolCall[];
+  uiKey: string;
 };
 
-/** 左侧会话列表项(字段与后端 ChatSession 对齐) */
-export type ChatConversation = {
+/** 左侧会话列表项(字段与后端 ChatSession 对齐)。 */
+export interface ChatConversation {
   session_id: string;
   title: string;
-};
+}

@@ -3,7 +3,7 @@
  *
  * POST /api/ai/chat/ —— SSE 流式对话
  * - 认证:SimpleJWT,与 requestClient 相同的 Bearer Token
- * - 事件帧格式:`event: <name>\ndata: <json>\n\n`(见 backend/ai_assistant/services.py)
+ * - 事件帧格式:`event: <name>\ndata: <json>\n\n`
  *
  * 说明:浏览器端 axios 无法做流式读取,这里用 fetch + ReadableStream 解析 SSE;
  * token 过期(401)时不做自动刷新,提示用户重新登录后重试。
@@ -44,7 +44,7 @@ aiRequestClient.addResponseInterceptor({
   },
 });
 
-/** 后端 SSE 事件名(与 services.py 的 _frames 一一对应) */
+/** 后端 SSE 事件名。 */
 export type ChatStreamEventName =
   | 'done'
   | 'error'
@@ -54,17 +54,37 @@ export type ChatStreamEventName =
   | 'tool_call'
   | 'tool_response';
 
-/** SSE 事件负载数据(各事件只用到其中部分字段) */
-export interface ChatStreamEventData {
+export type ChatToolCallStatus = 'error' | 'incomplete' | 'running' | 'success';
+
+/** 后端工具记录。旧历史数据可能只有 name/args，因此其它字段均可缺省。 */
+export interface ChatToolCallData {
   args?: Record<string, unknown>;
+  id?: string;
+  name?: string;
+  result?: unknown;
+  status?: ChatToolCallStatus;
+}
+
+/** 历史消息及 done.assistant_message 共用的后端消息结构。 */
+export interface ChatApiMessage {
+  content?: null | string;
+  created_at?: string;
+  id?: number | string;
+  role: 'assistant' | 'user';
+  thinking?: null | string;
+  tool_calls?: ChatToolCallData[] | null;
+}
+
+/** SSE 事件负载数据(各事件只用到其中部分字段)。 */
+export interface ChatStreamEventData extends ChatToolCallData {
+  assistant_message?: ChatApiMessage;
   detail?: string;
   message?: string;
-  name?: string;
   session_id?: string;
   total_tokens?: null | number;
 }
 
-/** 解析后的一条 SSE 事件 */
+/** 解析后的一条 SSE 事件。 */
 export interface ChatStreamEvent {
   data: ChatStreamEventData;
   event: ChatStreamEventName;
@@ -81,10 +101,13 @@ export interface SendChatStreamOptions {
   onEvent: (event: ChatStreamEvent) => void;
 }
 
-/** 发起流式对话,连接关闭/流结束时 resolve;网络异常或非 2xx 时 reject */
+/**
+ * 发起流式对话。只有收到包含最终助手消息的 done 事件后才 resolve；
+ * 解析、UI 回调、网络异常及无 done 的 EOF 均会 reject。
+ */
 export async function sendChatStreamApi(
   options: SendChatStreamOptions,
-): Promise<void> {
+): Promise<ChatApiMessage> {
   const token = useAccessStore().accessToken;
   const response = await fetch(`${apiURL}/ai/chat/`, {
     body: JSON.stringify({
@@ -92,6 +115,9 @@ export async function sendChatStreamApi(
       ...(options.sessionId ? { session_id: options.sessionId } : {}),
     }),
     headers: {
+      // DRF ChatView 只用 JSONRenderer 做内容协商；SSE 由 StreamingHttpResponse
+      // 直接返回，不能只声明 text/event-stream，否则会在进入对话前返回 406。
+      Accept: '*/*',
       Authorization: token ? `Bearer ${token}` : '',
       'Content-Type': 'application/json',
     },
@@ -112,40 +138,77 @@ export async function sendChatStreamApi(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let assistantMessage: ChatApiMessage | undefined;
 
   const dispatch = (frame: string) => {
     let eventName = 'message';
-    let rawData = '';
-    for (const line of frame.split('\n')) {
+    const dataLines: string[] = [];
+    for (const line of frame.split(/\r?\n/)) {
+      if (!line || line.startsWith(':')) continue;
       if (line.startsWith('event:')) {
-        eventName = line.slice(6).trim();
+        eventName = line.slice(6).trimStart();
       } else if (line.startsWith('data:')) {
-        rawData += line.slice(5).trimStart();
+        // SSE 规范要求用换行连接多行 data，而不是直接拼接。
+        dataLines.push(line.slice(5).trimStart());
       }
     }
-    if (!rawData) return;
+    if (dataLines.length === 0) return;
+
+    let data: ChatStreamEventData;
     try {
-      options.onEvent({
-        data: JSON.parse(rawData) as ChatStreamEventData,
-        event: eventName as ChatStreamEventName,
-      });
-    } catch {
-      // 单帧解析失败只跳过该帧,不影响整体流
-      console.warn('[AI] Failed to parse SSE frame:', frame);
+      data = JSON.parse(dataLines.join('\n')) as ChatStreamEventData;
+    } catch (error) {
+      console.error('[AI] Failed to parse SSE frame:', frame, error);
+      throw new Error('AI 流式响应解析失败，请重试。');
+    }
+
+    if (eventName === 'error') {
+      throw new Error(data.message || '模型调用失败，请稍后重试。');
+    }
+
+    // 回调异常不能吞掉，否则上游仍会继续生成，页面也无法正确结束 loading。
+    options.onEvent({
+      data,
+      event: eventName as ChatStreamEventName,
+    });
+    if (eventName === 'done') {
+      if (!data.assistant_message) {
+        throw new Error('AI 完成事件缺少最终助手消息，请重试。');
+      }
+      assistantMessage = data.assistant_message;
     }
   };
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    let separator = buffer.indexOf('\n\n');
-    while (separator >= 0) {
-      dispatch(buffer.slice(0, separator));
-      buffer = buffer.slice(separator + 2);
-      separator = buffer.indexOf('\n\n');
+  try {
+    let eof = false;
+    while (!eof) {
+      const { done, value } = await reader.read();
+      eof = done;
+      // done 时以 stream:false 刷新多字节字符的残留字节。
+      buffer += decoder.decode(value, { stream: !done });
+
+      let boundary = /\r?\n\r?\n/.exec(buffer);
+      while (boundary) {
+        const frame = buffer.slice(0, boundary.index);
+        buffer = buffer.slice(boundary.index + boundary[0].length);
+        dispatch(frame);
+        boundary = /\r?\n\r?\n/.exec(buffer);
+      }
     }
+
+    // 某些服务不会在最后一帧后写空行，EOF 前仍需派发残留帧。
+    if (buffer.trim()) dispatch(buffer);
+  } catch (error) {
+    await reader.cancel().catch(() => undefined);
+    throw error;
+  } finally {
+    reader.releaseLock();
   }
+
+  if (!assistantMessage) {
+    throw new Error('流式连接已结束，但未收到完成事件，请重试。');
+  }
+  return assistantMessage;
 }
 
 // ==================== 会话管理(业务表, 走 requestClient) ====================
@@ -178,12 +241,6 @@ export async function getSessionMessagesApi(sessionId: string) {
   return aiRequestClient.get<{
     session_id: string;
     title: string;
-    messages: Array<{
-      role: 'user' | 'assistant';
-      content: string;
-      thinking: string;
-      tool_calls: Array<{ name: string; args: Record<string, unknown> }>;
-      created_at: string;
-    }>;
+    messages: ChatApiMessage[];
   }>(`/ai/sessions/${sessionId}/messages/`);
 }
