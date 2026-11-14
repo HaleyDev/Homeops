@@ -1,3 +1,23 @@
+<template>
+  <SwitchItem v-model="headerEnable" :disabled="disabled">
+    {{ $t('preferences.header.visible') }}
+  </SwitchItem>
+  <SelectItem
+    v-model="headerMode"
+    :disabled="!headerEnable"
+    :items="localeItems"
+  >
+    {{ $t('preferences.mode') }}
+  </SelectItem>
+  <ToggleItem
+    v-model="headerMenuAlign"
+    :disabled="!headerEnable"
+    :items="headerMenuAlignItems"
+  >
+    {{ $t('preferences.header.menuAlign') }}
+  </ToggleItem>
+</template>
+
 <script setup lang="ts">
 import type {
   LayoutHeaderMenuAlignType,
@@ -52,23 +72,3 @@ const headerMenuAlignItems: SelectOption[] = [
   },
 ];
 </script>
-
-<template>
-  <SwitchItem v-model="headerEnable" :disabled="disabled">
-    {{ $t('preferences.header.visible') }}
-  </SwitchItem>
-  <SelectItem
-    v-model="headerMode"
-    :disabled="!headerEnable"
-    :items="localeItems"
-  >
-    {{ $t('preferences.mode') }}
-  </SelectItem>
-  <ToggleItem
-    v-model="headerMenuAlign"
-    :disabled="!headerEnable"
-    :items="headerMenuAlignItems"
-  >
-    {{ $t('preferences.header.menuAlign') }}
-  </ToggleItem>
-</template>

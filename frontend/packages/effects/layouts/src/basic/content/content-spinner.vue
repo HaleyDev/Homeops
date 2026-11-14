@@ -1,3 +1,6 @@
+<template>
+  <VbenSpinner :spinning="spinning" />
+</template>
 <script lang="ts" setup>
 import { VbenSpinner } from '@vben-core/shadcn-ui';
 
@@ -7,6 +10,3 @@ defineOptions({ name: 'LayoutContentSpinner' });
 
 const { spinning } = useContentSpinner();
 </script>
-<template>
-  <VbenSpinner :spinning="spinning" />
-</template>

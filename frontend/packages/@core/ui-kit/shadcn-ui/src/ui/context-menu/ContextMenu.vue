@@ -1,3 +1,9 @@
+<template>
+  <ContextMenuRoot data-slot="context-menu" v-bind="forwarded">
+    <slot></slot>
+  </ContextMenuRoot>
+</template>
+
 <script setup lang="ts">
 import type { ContextMenuRootEmits, ContextMenuRootProps } from 'reka-ui';
 
@@ -10,9 +16,3 @@ const emits = defineEmits<ContextMenuRootEmits>();
 
 const forwarded = useForwardPropsEmits(props, emits);
 </script>
-
-<template>
-  <ContextMenuRoot data-slot="context-menu" v-bind="forwarded">
-    <slot></slot>
-  </ContextMenuRoot>
-</template>

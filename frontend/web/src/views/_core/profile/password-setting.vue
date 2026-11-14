@@ -1,3 +1,10 @@
+<template>
+  <ProfilePasswordSetting
+    class="w-1/3"
+    :form-schema="formSchema"
+    @submit="handleSubmit"
+  />
+</template>
 <script setup lang="ts">
 import type { VbenFormSchema } from '#/adapter/form';
 
@@ -54,10 +61,3 @@ function handleSubmit() {
   message.success('密码修改成功');
 }
 </script>
-<template>
-  <ProfilePasswordSetting
-    class="w-1/3"
-    :form-schema="formSchema"
-    @submit="handleSubmit"
-  />
-</template>

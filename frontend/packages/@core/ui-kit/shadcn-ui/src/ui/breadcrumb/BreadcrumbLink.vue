@@ -1,3 +1,14 @@
+<template>
+  <Primitive
+    data-slot="breadcrumb-link"
+    :as="as"
+    :as-child="asChild"
+    :class="cn('hover:text-foreground transition-colors', props.class)"
+  >
+    <slot></slot>
+  </Primitive>
+</template>
+
 <script lang="ts" setup>
 import type { PrimitiveProps } from 'reka-ui';
 
@@ -14,14 +25,3 @@ const props = withDefaults(
   },
 );
 </script>
-
-<template>
-  <Primitive
-    data-slot="breadcrumb-link"
-    :as="as"
-    :as-child="asChild"
-    :class="cn('hover:text-foreground transition-colors', props.class)"
-  >
-    <slot></slot>
-  </Primitive>
-</template>

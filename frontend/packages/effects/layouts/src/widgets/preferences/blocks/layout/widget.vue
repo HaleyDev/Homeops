@@ -1,3 +1,12 @@
+<template>
+  <DraggableList
+    :items="draggableItems"
+    :position-items="buttonPositionItems"
+    @update-order="handleUpdateOrder"
+    @update-position="handleUpdatePosition"
+  />
+</template>
+
 <script setup lang="ts">
 import type { PreferencesButtonPositionType, SelectOption } from '@vben/types';
 
@@ -168,12 +177,3 @@ function handleUpdatePosition(
   modelMap[modelName].value = position;
 }
 </script>
-
-<template>
-  <DraggableList
-    :items="draggableItems"
-    :position-items="buttonPositionItems"
-    @update-order="handleUpdateOrder"
-    @update-position="handleUpdatePosition"
-  />
-</template>

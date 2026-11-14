@@ -1,36 +1,3 @@
-<script setup lang="ts">
-import type { SelectOption } from '@vben/types';
-
-import { useSlots } from 'vue';
-
-import { CircleHelp, CircleX } from '@vben/icons';
-
-import { Input, VbenTooltip } from '@vben-core/shadcn-ui';
-
-defineOptions({
-  name: 'PreferenceSelectItem',
-});
-
-withDefaults(
-  defineProps<{
-    disabled?: boolean;
-    items?: SelectOption[];
-    placeholder?: string;
-    tip?: string;
-  }>(),
-  {
-    disabled: false,
-    placeholder: '',
-    tip: '',
-    items: () => [],
-  },
-);
-
-const inputValue = defineModel<string>();
-
-const slots = useSlots();
-</script>
-
 <template>
   <div
     :class="{
@@ -69,3 +36,36 @@ const slots = useSlots();
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { SelectOption } from '@vben/types';
+
+import { useSlots } from 'vue';
+
+import { CircleHelp, CircleX } from '@vben/icons';
+
+import { Input, VbenTooltip } from '@vben-core/shadcn-ui';
+
+defineOptions({
+  name: 'PreferenceSelectItem',
+});
+
+withDefaults(
+  defineProps<{
+    disabled?: boolean;
+    items?: SelectOption[];
+    placeholder?: string;
+    tip?: string;
+  }>(),
+  {
+    disabled: false,
+    placeholder: '',
+    tip: '',
+    items: () => [],
+  },
+);
+
+const inputValue = defineModel<string>();
+
+const slots = useSlots();
+</script>

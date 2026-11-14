@@ -1,3 +1,74 @@
+<template>
+  <Page :title="title">
+    <template #description>
+      <p class="mt-3 text-sm/6 text-foreground">
+        <a :href="VBEN_GITHUB_URL" class="vben-link" target="_blank">
+          {{ name }}
+        </a>
+        {{ description }}
+      </p>
+    </template>
+    <div class="card-box p-5">
+      <div>
+        <h5 class="text-lg text-foreground">基本信息</h5>
+      </div>
+      <div class="mt-4">
+        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <template v-for="item in vbenDescriptionItems" :key="item.title">
+            <div class="border-t border-border px-4 py-6 sm:col-span-1 sm:px-0">
+              <dt class="text-sm/6 font-medium text-foreground">
+                {{ item.title }}
+              </dt>
+              <dd class="mt-1 text-sm/6 text-foreground sm:mt-2">
+                <VbenRenderContent :content="item.content" />
+              </dd>
+            </div>
+          </template>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card-box mt-6 p-5">
+      <div>
+        <h5 class="text-lg text-foreground">生产环境依赖</h5>
+      </div>
+      <div class="mt-4">
+        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <template v-for="item in dependenciesItems" :key="item.title">
+            <div class="border-t border-border px-4 py-3 sm:col-span-1 sm:px-0">
+              <dt class="text-sm text-foreground">
+                {{ item.title }}
+              </dt>
+              <dd class="mt-1 text-sm text-foreground/80 sm:mt-2">
+                <VbenRenderContent :content="item.content" />
+              </dd>
+            </div>
+          </template>
+        </dl>
+      </div>
+    </div>
+    <div class="card-box mt-6 p-5">
+      <div>
+        <h5 class="text-lg text-foreground">开发环境依赖</h5>
+      </div>
+      <div class="mt-4">
+        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <template v-for="item in devDependenciesItems" :key="item.title">
+            <div class="border-t border-border px-4 py-3 sm:col-span-1 sm:px-0">
+              <dt class="text-sm text-foreground">
+                {{ item.title }}
+              </dt>
+              <dd class="mt-1 text-sm text-foreground/80 sm:mt-2">
+                <VbenRenderContent :content="item.content" />
+              </dd>
+            </div>
+          </template>
+        </dl>
+      </div>
+    </div>
+  </Page>
+</template>
+
 <script setup lang="ts">
 import type { AboutProps, DescriptionItem } from './about';
 
@@ -110,74 +181,3 @@ const devDependenciesItems = Object.keys(devDependencies).map((key) => ({
   title: key,
 }));
 </script>
-
-<template>
-  <Page :title="title">
-    <template #description>
-      <p class="mt-3 text-sm/6 text-foreground">
-        <a :href="VBEN_GITHUB_URL" class="vben-link" target="_blank">
-          {{ name }}
-        </a>
-        {{ description }}
-      </p>
-    </template>
-    <div class="card-box p-5">
-      <div>
-        <h5 class="text-lg text-foreground">基本信息</h5>
-      </div>
-      <div class="mt-4">
-        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <template v-for="item in vbenDescriptionItems" :key="item.title">
-            <div class="border-t border-border px-4 py-6 sm:col-span-1 sm:px-0">
-              <dt class="text-sm/6 font-medium text-foreground">
-                {{ item.title }}
-              </dt>
-              <dd class="mt-1 text-sm/6 text-foreground sm:mt-2">
-                <VbenRenderContent :content="item.content" />
-              </dd>
-            </div>
-          </template>
-        </dl>
-      </div>
-    </div>
-
-    <div class="card-box mt-6 p-5">
-      <div>
-        <h5 class="text-lg text-foreground">生产环境依赖</h5>
-      </div>
-      <div class="mt-4">
-        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <template v-for="item in dependenciesItems" :key="item.title">
-            <div class="border-t border-border px-4 py-3 sm:col-span-1 sm:px-0">
-              <dt class="text-sm text-foreground">
-                {{ item.title }}
-              </dt>
-              <dd class="mt-1 text-sm text-foreground/80 sm:mt-2">
-                <VbenRenderContent :content="item.content" />
-              </dd>
-            </div>
-          </template>
-        </dl>
-      </div>
-    </div>
-    <div class="card-box mt-6 p-5">
-      <div>
-        <h5 class="text-lg text-foreground">开发环境依赖</h5>
-      </div>
-      <div class="mt-4">
-        <dl class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <template v-for="item in devDependenciesItems" :key="item.title">
-            <div class="border-t border-border px-4 py-3 sm:col-span-1 sm:px-0">
-              <dt class="text-sm text-foreground">
-                {{ item.title }}
-              </dt>
-              <dd class="mt-1 text-sm text-foreground/80 sm:mt-2">
-                <VbenRenderContent :content="item.content" />
-              </dd>
-            </div>
-          </template>
-        </dl>
-      </div>
-    </div>
-  </Page>
-</template>

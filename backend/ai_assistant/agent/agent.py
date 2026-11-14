@@ -1,16 +1,7 @@
-import os
-from pathlib import Path
-
-from dotenv import load_dotenv
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 
-# ============================ CONFIG ============================
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-MODEL_NAME = os.getenv("ADK_MODEL_NAME", "openai/glm-5.3-flash")
-BASE_URL = os.getenv("ADK_BASE_URL", "https://ark.cn-beijing.volces.com/api/coding/v3")
-API_KEY = os.getenv("ADK_API_KEY", "")
-# ================================================================
+from system_setting.services import EffectiveModelConfig
 
 
 def get_server_status(server_name: str) -> dict:
@@ -33,18 +24,28 @@ def get_server_status(server_name: str) -> dict:
     return mock.get(
         server_name.lower(),
         {"status": "error",
-         "error_message": f"未知服务器: {server_name}，可选: backend / db / elasticsearch"},
+         "error_message": f"Unknown server: {server_name}. Available servers: backend / db / elasticsearch"},
     )
 
 
-root_agent = Agent(
-    name="homeops_assistant",
-    model=LiteLlm(model=MODEL_NAME, api_key=API_KEY, base_url=BASE_URL),
-    description="HomeOps 内网运维平台的演示助手",
-    instruction=(
-        "你是 HomeOps 内网运维平台的助手，用中文简洁回答。\n"
-        "当用户询问服务器状态时，必须调用 get_server_status 工具查询，不要编造数据。\n"
-        "用户问的服务器不在支持列表时，告知可选: backend / db / elasticsearch。"
-    ),
-    tools=[get_server_status],
-)
+def create_agent(config: EffectiveModelConfig) -> Agent:
+    """Create an agent bound to one request's model configuration snapshot."""
+
+    model_options = {**config.extra_config, **config.parameters}
+    model = LiteLlm(
+        model=f"openai/{config.model_key}",
+        api_key=config.api_key,
+        base_url=config.base_url,
+        **model_options,
+    )
+    return Agent(
+        name="homeops_assistant",
+        model=model,
+        description="HomeOps 内网运维平台的演示助手",
+        instruction=(
+            "你是 HomeOps 内网运维平台的助手，用中文简洁回答。\n"
+            "当用户询问服务器状态时，必须调用 get_server_status 工具查询，不要编造数据。\n"
+            "用户问的服务器不在支持列表时，告知可选: backend / db / elasticsearch。"
+        ),
+        tools=[get_server_status],
+    )

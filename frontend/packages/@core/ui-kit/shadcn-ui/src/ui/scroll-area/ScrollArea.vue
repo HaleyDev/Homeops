@@ -1,3 +1,22 @@
+<template>
+  <ScrollAreaRoot
+    data-slot="scroll-area"
+    v-bind="delegatedProps"
+    :class="cn('relative overflow-hidden', props.class)"
+  >
+    <ScrollAreaViewport
+      as-child
+      data-slot="scroll-area-viewport"
+      class="h-full w-full rounded-[inherit] focus:outline-hidden"
+      @scroll="props.onScroll"
+    >
+      <slot></slot>
+    </ScrollAreaViewport>
+    <ScrollBar />
+    <ScrollAreaCorner />
+  </ScrollAreaRoot>
+</template>
+
 <script setup lang="ts">
 import type { ScrollAreaRootProps } from 'reka-ui';
 
@@ -19,22 +38,3 @@ const props = defineProps<
 
 const delegatedProps = reactiveOmit(props, 'class', 'onScroll');
 </script>
-
-<template>
-  <ScrollAreaRoot
-    data-slot="scroll-area"
-    v-bind="delegatedProps"
-    :class="cn('relative overflow-hidden', props.class)"
-  >
-    <ScrollAreaViewport
-      as-child
-      data-slot="scroll-area-viewport"
-      class="h-full w-full rounded-[inherit] focus:outline-hidden"
-      @scroll="props.onScroll"
-    >
-      <slot></slot>
-    </ScrollAreaViewport>
-    <ScrollBar />
-    <ScrollAreaCorner />
-  </ScrollAreaRoot>
-</template>

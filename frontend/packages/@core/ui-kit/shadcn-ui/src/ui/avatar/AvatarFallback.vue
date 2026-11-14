@@ -1,3 +1,18 @@
+<template>
+  <AvatarFallback
+    data-slot="avatar-fallback"
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        'bg-muted flex size-full items-center justify-center rounded-full',
+        props.class,
+      )
+    "
+  >
+    <slot></slot>
+  </AvatarFallback>
+</template>
+
 <script setup lang="ts">
 import type { AvatarFallbackProps } from 'reka-ui';
 
@@ -14,18 +29,3 @@ const props = defineProps<
 
 const delegatedProps = reactiveOmit(props, 'class');
 </script>
-
-<template>
-  <AvatarFallback
-    data-slot="avatar-fallback"
-    v-bind="delegatedProps"
-    :class="
-      cn(
-        'bg-muted flex size-full items-center justify-center rounded-full',
-        props.class,
-      )
-    "
-  >
-    <slot></slot>
-  </AvatarFallback>
-</template>

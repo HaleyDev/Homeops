@@ -1,3 +1,17 @@
+<template>
+  <transition name="fade-down">
+    <VbenButton
+      v-if="visible"
+      :style="backTopStyle"
+      class="data z-popup bg-background shadow-float hover:bg-heavy dark:bg-accent dark:hover:bg-heavy fixed bottom-10 size-10 rounded-full duration-500"
+      size="icon"
+      variant="ghost"
+      @click="handleClick"
+    >
+      <ArrowUpToLine class="size-4" />
+    </VbenButton>
+  </transition>
+</template>
 <script lang="ts" setup>
 import type { BacktopProps } from './backtop';
 
@@ -27,17 +41,3 @@ const backTopStyle = computed(() => ({
 
 const { handleClick, visible } = useBackTop(props);
 </script>
-<template>
-  <transition name="fade-down">
-    <VbenButton
-      v-if="visible"
-      :style="backTopStyle"
-      class="data z-popup bg-background shadow-float hover:bg-heavy dark:bg-accent dark:hover:bg-heavy fixed bottom-10 size-10 rounded-full duration-500"
-      size="icon"
-      variant="ghost"
-      @click="handleClick"
-    >
-      <ArrowUpToLine class="size-4" />
-    </VbenButton>
-  </transition>
-</template>

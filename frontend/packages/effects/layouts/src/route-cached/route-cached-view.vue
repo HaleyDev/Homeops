@@ -1,3 +1,27 @@
+<template>
+  <template v-if="computedShowView">
+    <template v-for="item in computedCachedRoutes" :key="item.key">
+      <Transition
+        v-if="getEnabledTransition"
+        appear
+        mode="out-in"
+        :name="getTransitionName(item.route)"
+      >
+        <component
+          v-show="item.key === computedCurrentRouteKey"
+          :is="transformComponent(item.component, item.route)"
+        />
+      </Transition>
+      <template v-else>
+        <component
+          v-show="item.key === computedCurrentRouteKey"
+          :is="transformComponent(item.component, item.route)"
+        />
+      </template>
+    </template>
+  </template>
+</template>
+
 <script setup lang="ts">
 import { computed, unref, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -70,29 +94,5 @@ const computedCurrentRouteKey = computed(() => {
   return getTabKey(route);
 });
 </script>
-
-<template>
-  <template v-if="computedShowView">
-    <template v-for="item in computedCachedRoutes" :key="item.key">
-      <Transition
-        v-if="getEnabledTransition"
-        appear
-        mode="out-in"
-        :name="getTransitionName(item.route)"
-      >
-        <component
-          v-show="item.key === computedCurrentRouteKey"
-          :is="transformComponent(item.component, item.route)"
-        />
-      </Transition>
-      <template v-else>
-        <component
-          v-show="item.key === computedCurrentRouteKey"
-          :is="transformComponent(item.component, item.route)"
-        />
-      </template>
-    </template>
-  </template>
-</template>
 
 <style scoped></style>

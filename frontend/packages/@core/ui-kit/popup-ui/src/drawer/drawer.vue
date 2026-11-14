@@ -1,3 +1,163 @@
+<template>
+  <Sheet
+    :modal="false"
+    :open="state?.isOpen"
+    @update:open="() => drawerApi?.close()"
+  >
+    <SheetContent
+      :append-to="getAppendTo"
+      :class="
+        cn(
+          'flex w-130 flex-col',
+          {
+            'w-full!':
+              isMobile || placement === 'bottom' || placement === 'top',
+            'max-h-screen': placement === 'bottom' || placement === 'top',
+            hidden: isClosed,
+          },
+          drawerClass,
+        )
+      "
+      :modal="modal"
+      :open="state?.isOpen"
+      :side="placement"
+      :z-index="zIndex"
+      :force-mount="getForceMount"
+      :overlay-blur="overlayBlur"
+      @close-auto-focus="handleFocusOutside"
+      @closed="handleClosed"
+      @escape-key-down="escapeKeyDown"
+      @focus-outside="handleFocusOutside"
+      @interact-outside="interactOutside"
+      @open-auto-focus="handerOpenAutoFocus"
+      @opened="() => drawerApi?.onOpened()"
+      @pointer-down-outside="pointerDownOutside"
+    >
+      <SheetHeader
+        v-if="showHeader"
+        :class="
+          cn(
+            'flex! flex-row items-center justify-between border-b px-6 py-5',
+            headerClass,
+            {
+              'px-4 py-3': closable,
+              'pl-2': closable && closeIconPlacement === 'left',
+            },
+          )
+        "
+      >
+        <div class="flex items-center">
+          <SheetClose
+            v-if="closable && closeIconPlacement === 'left'"
+            as-child
+            :disabled="submitting"
+            class="ml-0.5 cursor-pointer rounded-full opacity-80 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
+          >
+            <slot name="close-icon">
+              <VbenIconButton>
+                <X class="size-4" />
+              </VbenIconButton>
+            </slot>
+          </SheetClose>
+          <Separator
+            v-if="closable && closeIconPlacement === 'left'"
+            class="mr-2 ml-1 h-8"
+            decorative
+            orientation="vertical"
+          />
+          <SheetTitle v-if="title" class="text-left">
+            <slot name="title">
+              {{ title }}
+
+              <VbenHelpTooltip v-if="titleTooltip" trigger-class="pb-1">
+                {{ titleTooltip }}
+              </VbenHelpTooltip>
+            </slot>
+          </SheetTitle>
+          <SheetDescription v-if="description" class="mt-1 text-xs">
+            <slot name="description">
+              {{ description }}
+            </slot>
+          </SheetDescription>
+        </div>
+
+        <VisuallyHidden v-if="!title || !description">
+          <SheetTitle v-if="!title" />
+          <SheetDescription v-if="!description" />
+        </VisuallyHidden>
+
+        <div class="flex-center">
+          <slot name="extra"></slot>
+          <SheetClose
+            v-if="closable && closeIconPlacement === 'right'"
+            as-child
+            :disabled="submitting"
+            class="ml-0.5 cursor-pointer rounded-full opacity-80 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
+          >
+            <slot name="close-icon">
+              <VbenIconButton>
+                <X class="size-4" />
+              </VbenIconButton>
+            </slot>
+          </SheetClose>
+        </div>
+      </SheetHeader>
+      <template v-else>
+        <VisuallyHidden>
+          <SheetTitle />
+          <SheetDescription />
+        </VisuallyHidden>
+      </template>
+      <div
+        ref="wrapperRef"
+        :class="
+          cn('relative flex-1 overflow-y-auto p-3', contentClass, {
+            'pointer-events-none': showLoading || submitting,
+          })
+        "
+      >
+        <slot></slot>
+      </div>
+      <VbenLoading v-if="showLoading || submitting" spinning />
+      <SheetFooter
+        v-if="showFooter"
+        :class="
+          cn(
+            'w-full flex-row items-center justify-end border-t p-2 px-3',
+            footerClass,
+          )
+        "
+      >
+        <slot name="prepend-footer"></slot>
+        <slot name="footer">
+          <component
+            :is="components.DefaultButton || VbenButton"
+            v-if="showCancelButton"
+            variant="ghost"
+            :disabled="submitting"
+            @click="() => drawerApi?.onCancel()"
+          >
+            <slot name="cancelText">
+              {{ cancelText || $t('cancel') }}
+            </slot>
+          </component>
+          <slot name="center-footer"></slot>
+          <component
+            :is="components.PrimaryButton || VbenButton"
+            v-if="showConfirmButton"
+            :loading="confirmLoading || submitting"
+            @click="() => drawerApi?.onConfirm()"
+          >
+            <slot name="confirmText">
+              {{ confirmText || $t('confirm') }}
+            </slot>
+          </component>
+        </slot>
+        <slot name="append-footer"></slot>
+      </SheetFooter>
+    </SheetContent>
+  </Sheet>
+</template>
 <script lang="ts" setup>
 import type { DrawerProps, ExtendedDrawerApi } from './drawer';
 
@@ -175,163 +335,3 @@ const getForceMount = computed(() => {
   return !unref(destroyOnClose) && unref(hasOpened);
 });
 </script>
-<template>
-  <Sheet
-    :modal="false"
-    :open="state?.isOpen"
-    @update:open="() => drawerApi?.close()"
-  >
-    <SheetContent
-      :append-to="getAppendTo"
-      :class="
-        cn(
-          'flex w-130 flex-col',
-          {
-            'w-full!':
-              isMobile || placement === 'bottom' || placement === 'top',
-            'max-h-screen': placement === 'bottom' || placement === 'top',
-            hidden: isClosed,
-          },
-          drawerClass,
-        )
-      "
-      :modal="modal"
-      :open="state?.isOpen"
-      :side="placement"
-      :z-index="zIndex"
-      :force-mount="getForceMount"
-      :overlay-blur="overlayBlur"
-      @close-auto-focus="handleFocusOutside"
-      @closed="handleClosed"
-      @escape-key-down="escapeKeyDown"
-      @focus-outside="handleFocusOutside"
-      @interact-outside="interactOutside"
-      @open-auto-focus="handerOpenAutoFocus"
-      @opened="() => drawerApi?.onOpened()"
-      @pointer-down-outside="pointerDownOutside"
-    >
-      <SheetHeader
-        v-if="showHeader"
-        :class="
-          cn(
-            'flex! flex-row items-center justify-between border-b px-6 py-5',
-            headerClass,
-            {
-              'px-4 py-3': closable,
-              'pl-2': closable && closeIconPlacement === 'left',
-            },
-          )
-        "
-      >
-        <div class="flex items-center">
-          <SheetClose
-            v-if="closable && closeIconPlacement === 'left'"
-            as-child
-            :disabled="submitting"
-            class="ml-0.5 cursor-pointer rounded-full opacity-80 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
-          >
-            <slot name="close-icon">
-              <VbenIconButton>
-                <X class="size-4" />
-              </VbenIconButton>
-            </slot>
-          </SheetClose>
-          <Separator
-            v-if="closable && closeIconPlacement === 'left'"
-            class="mr-2 ml-1 h-8"
-            decorative
-            orientation="vertical"
-          />
-          <SheetTitle v-if="title" class="text-left">
-            <slot name="title">
-              {{ title }}
-
-              <VbenHelpTooltip v-if="titleTooltip" trigger-class="pb-1">
-                {{ titleTooltip }}
-              </VbenHelpTooltip>
-            </slot>
-          </SheetTitle>
-          <SheetDescription v-if="description" class="mt-1 text-xs">
-            <slot name="description">
-              {{ description }}
-            </slot>
-          </SheetDescription>
-        </div>
-
-        <VisuallyHidden v-if="!title || !description">
-          <SheetTitle v-if="!title" />
-          <SheetDescription v-if="!description" />
-        </VisuallyHidden>
-
-        <div class="flex-center">
-          <slot name="extra"></slot>
-          <SheetClose
-            v-if="closable && closeIconPlacement === 'right'"
-            as-child
-            :disabled="submitting"
-            class="ml-0.5 cursor-pointer rounded-full opacity-80 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-secondary"
-          >
-            <slot name="close-icon">
-              <VbenIconButton>
-                <X class="size-4" />
-              </VbenIconButton>
-            </slot>
-          </SheetClose>
-        </div>
-      </SheetHeader>
-      <template v-else>
-        <VisuallyHidden>
-          <SheetTitle />
-          <SheetDescription />
-        </VisuallyHidden>
-      </template>
-      <div
-        ref="wrapperRef"
-        :class="
-          cn('relative flex-1 overflow-y-auto p-3', contentClass, {
-            'pointer-events-none': showLoading || submitting,
-          })
-        "
-      >
-        <slot></slot>
-      </div>
-      <VbenLoading v-if="showLoading || submitting" spinning />
-      <SheetFooter
-        v-if="showFooter"
-        :class="
-          cn(
-            'w-full flex-row items-center justify-end border-t p-2 px-3',
-            footerClass,
-          )
-        "
-      >
-        <slot name="prepend-footer"></slot>
-        <slot name="footer">
-          <component
-            :is="components.DefaultButton || VbenButton"
-            v-if="showCancelButton"
-            variant="ghost"
-            :disabled="submitting"
-            @click="() => drawerApi?.onCancel()"
-          >
-            <slot name="cancelText">
-              {{ cancelText || $t('cancel') }}
-            </slot>
-          </component>
-          <slot name="center-footer"></slot>
-          <component
-            :is="components.PrimaryButton || VbenButton"
-            v-if="showConfirmButton"
-            :loading="confirmLoading || submitting"
-            @click="() => drawerApi?.onConfirm()"
-          >
-            <slot name="confirmText">
-              {{ confirmText || $t('confirm') }}
-            </slot>
-          </component>
-        </slot>
-        <slot name="append-footer"></slot>
-      </SheetFooter>
-    </SheetContent>
-  </Sheet>
-</template>

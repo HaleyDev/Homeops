@@ -1,3 +1,52 @@
+<template>
+  <template v-for="field in resolvedFields" :key="field.key">
+    <SwitchItem
+      v-if="field.component === 'switch'"
+      :disabled="field.disabled"
+      :model-value="Boolean(values[field.key])"
+      :tip="field.tip"
+      v-bind="field.componentProps"
+      @update:model-value="handleBooleanUpdate(field.key, $event)"
+    >
+      {{ field.label }}
+    </SwitchItem>
+    <NumberFieldItem
+      v-else-if="field.component === 'number'"
+      :disabled="field.disabled"
+      :model-value="resolveNumberValue(values[field.key])"
+      :placeholder="field.placeholder"
+      :tip="field.tip"
+      v-bind="field.componentProps"
+      @update:model-value="handleNumberUpdate(field.key, $event)"
+    >
+      {{ field.label }}
+    </NumberFieldItem>
+    <SelectItem
+      v-else-if="field.component === 'select'"
+      :disabled="field.disabled"
+      :items="field.options"
+      :model-value="String(values[field.key] ?? '')"
+      :placeholder="field.placeholder"
+      :tip="field.tip"
+      v-bind="field.componentProps"
+      @update:model-value="handleStringUpdate(field.key, $event)"
+    >
+      {{ field.label }}
+    </SelectItem>
+    <InputItem
+      v-else
+      :disabled="field.disabled"
+      :model-value="String(values[field.key] ?? '')"
+      :placeholder="field.placeholder"
+      :tip="field.tip"
+      v-bind="field.componentProps"
+      @update:model-value="handleStringUpdate(field.key, $event)"
+    >
+      {{ field.label }}
+    </InputItem>
+  </template>
+</template>
+
 <script setup lang="ts">
 import type {
   CustomPreferencesField,
@@ -70,52 +119,3 @@ const resolvedFields = computed(() => {
   });
 });
 </script>
-
-<template>
-  <template v-for="field in resolvedFields" :key="field.key">
-    <SwitchItem
-      v-if="field.component === 'switch'"
-      :disabled="field.disabled"
-      :model-value="Boolean(values[field.key])"
-      :tip="field.tip"
-      v-bind="field.componentProps"
-      @update:model-value="handleBooleanUpdate(field.key, $event)"
-    >
-      {{ field.label }}
-    </SwitchItem>
-    <NumberFieldItem
-      v-else-if="field.component === 'number'"
-      :disabled="field.disabled"
-      :model-value="resolveNumberValue(values[field.key])"
-      :placeholder="field.placeholder"
-      :tip="field.tip"
-      v-bind="field.componentProps"
-      @update:model-value="handleNumberUpdate(field.key, $event)"
-    >
-      {{ field.label }}
-    </NumberFieldItem>
-    <SelectItem
-      v-else-if="field.component === 'select'"
-      :disabled="field.disabled"
-      :items="field.options"
-      :model-value="String(values[field.key] ?? '')"
-      :placeholder="field.placeholder"
-      :tip="field.tip"
-      v-bind="field.componentProps"
-      @update:model-value="handleStringUpdate(field.key, $event)"
-    >
-      {{ field.label }}
-    </SelectItem>
-    <InputItem
-      v-else
-      :disabled="field.disabled"
-      :model-value="String(values[field.key] ?? '')"
-      :placeholder="field.placeholder"
-      :tip="field.tip"
-      v-bind="field.componentProps"
-      @update:model-value="handleStringUpdate(field.key, $event)"
-    >
-      {{ field.label }}
-    </InputItem>
-  </template>
-</template>

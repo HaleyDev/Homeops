@@ -1,3 +1,21 @@
+<template>
+  <div class="relative mt-2 flex items-center justify-between">
+    <template v-for="index in 5" :key="index">
+      <div
+        class="bg-heavy dark:bg-input-background relative mr-1 h-1.5 w-1/5 rounded-sm last:mr-0"
+      >
+        <span
+          :style="{
+            backgroundColor: currentColor,
+            width: currentStrength >= index ? '100%' : '',
+          }"
+          class="absolute left-0 h-full w-0 rounded-sm transition-all duration-500"
+        ></span>
+      </div>
+    </template>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -46,21 +64,3 @@ function checkPasswordStrength(password: string) {
   return strength;
 }
 </script>
-
-<template>
-  <div class="relative mt-2 flex items-center justify-between">
-    <template v-for="index in 5" :key="index">
-      <div
-        class="bg-heavy dark:bg-input-background relative mr-1 h-1.5 w-1/5 rounded-sm last:mr-0"
-      >
-        <span
-          :style="{
-            backgroundColor: currentColor,
-            width: currentStrength >= index ? '100%' : '',
-          }"
-          class="absolute left-0 h-full w-0 rounded-sm transition-all duration-500"
-        ></span>
-      </div>
-    </template>
-  </div>
-</template>

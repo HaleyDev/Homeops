@@ -72,9 +72,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { ChatToolCallStatus } from '#/api/ai';
-
 import type { ChatMessage } from '../types';
+
+import type { ChatToolCallStatus } from '#/api/ai';
 
 import { computed, nextTick, ref } from 'vue';
 

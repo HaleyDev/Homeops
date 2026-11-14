@@ -1,3 +1,20 @@
+<template>
+  <div class="card-box w-full px-4 pt-3 pb-5">
+    <Tabs :default-value="defaultValue">
+      <TabsList>
+        <template v-for="tab in tabs" :key="tab.label">
+          <TabsTrigger :value="tab.value"> {{ tab.label }} </TabsTrigger>
+        </template>
+      </TabsList>
+      <template v-for="tab in tabs" :key="tab.label">
+        <TabsContent :value="tab.value" class="pt-4">
+          <slot :name="tab.value"></slot>
+        </TabsContent>
+      </template>
+    </Tabs>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { TabOption } from '@vben/types';
 
@@ -21,20 +38,3 @@ const defaultValue = computed(() => {
   return props.tabs?.[0]?.value;
 });
 </script>
-
-<template>
-  <div class="card-box w-full px-4 pt-3 pb-5">
-    <Tabs :default-value="defaultValue">
-      <TabsList>
-        <template v-for="tab in tabs" :key="tab.label">
-          <TabsTrigger :value="tab.value"> {{ tab.label }} </TabsTrigger>
-        </template>
-      </TabsList>
-      <template v-for="tab in tabs" :key="tab.label">
-        <TabsContent :value="tab.value" class="pt-4">
-          <slot :name="tab.value"></slot>
-        </TabsContent>
-      </template>
-    </Tabs>
-  </div>
-</template>

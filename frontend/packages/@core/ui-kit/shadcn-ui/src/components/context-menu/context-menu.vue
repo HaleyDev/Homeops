@@ -1,3 +1,41 @@
+<template>
+  <ContextMenu v-bind="forwarded">
+    <ContextMenuTrigger as-child>
+      <div ref="triggerRef" class="contents">
+        <slot></slot>
+      </div>
+    </ContextMenuTrigger>
+    <ContextMenuContent
+      :class="contentClass"
+      v-bind="contentProps"
+      class="side-content z-popup"
+    >
+      <template v-for="menu in menusView" :key="menu.key">
+        <ContextMenuItem
+          v-if="!menu.hidden"
+          :class="itemClass"
+          :disabled="menu.disabled"
+          :inset="menu.inset || !menu.icon"
+          class="cursor-pointer"
+          @click="handleClick(menu)"
+        >
+          <component
+            :is="menu.icon"
+            v-if="menu.icon"
+            class="mr-2 size-4 text-lg"
+          />
+
+          {{ menu.text }}
+          <ContextMenuShortcut v-if="menu.shortcut">
+            {{ menu.shortcut }}
+          </ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuSeparator v-if="menu.separator" />
+      </template>
+    </ContextMenuContent>
+  </ContextMenu>
+</template>
+
 <script setup lang="ts">
 import type {
   ContextMenuContentProps,
@@ -88,41 +126,3 @@ onUnmounted(() => {
   });
 });
 </script>
-
-<template>
-  <ContextMenu v-bind="forwarded">
-    <ContextMenuTrigger as-child>
-      <div ref="triggerRef" class="contents">
-        <slot></slot>
-      </div>
-    </ContextMenuTrigger>
-    <ContextMenuContent
-      :class="contentClass"
-      v-bind="contentProps"
-      class="side-content z-popup"
-    >
-      <template v-for="menu in menusView" :key="menu.key">
-        <ContextMenuItem
-          v-if="!menu.hidden"
-          :class="itemClass"
-          :disabled="menu.disabled"
-          :inset="menu.inset || !menu.icon"
-          class="cursor-pointer"
-          @click="handleClick(menu)"
-        >
-          <component
-            :is="menu.icon"
-            v-if="menu.icon"
-            class="mr-2 size-4 text-lg"
-          />
-
-          {{ menu.text }}
-          <ContextMenuShortcut v-if="menu.shortcut">
-            {{ menu.shortcut }}
-          </ContextMenuShortcut>
-        </ContextMenuItem>
-        <ContextMenuSeparator v-if="menu.separator" />
-      </template>
-    </ContextMenuContent>
-  </ContextMenu>
-</template>

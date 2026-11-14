@@ -1,29 +1,3 @@
-<script setup lang="ts">
-import type { Props } from './types';
-
-import { preferences } from '@vben-core/preferences';
-import {
-  Card,
-  Separator,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  VbenAvatar,
-} from '@vben-core/shadcn-ui';
-
-import { Page } from '../../components';
-
-defineOptions({
-  name: 'ProfileUI',
-});
-
-withDefaults(defineProps<Props>(), {
-  title: '关于项目',
-  tabs: () => [],
-});
-
-const tabsValue = defineModel<string>('modelValue');
-</script>
 <template>
   <Page auto-content-height>
     <div class="flex size-full">
@@ -60,3 +34,29 @@ const tabsValue = defineModel<string>('modelValue');
     </div>
   </Page>
 </template>
+<script setup lang="ts">
+import type { Props } from './types';
+
+import { preferences } from '@vben-core/preferences';
+import {
+  Card,
+  Separator,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  VbenAvatar,
+} from '@vben-core/shadcn-ui';
+
+import { Page } from '../../components';
+
+defineOptions({
+  name: 'ProfileUI',
+});
+
+withDefaults(defineProps<Props>(), {
+  title: '关于项目',
+  tabs: () => [],
+});
+
+const tabsValue = defineModel<string>('modelValue');
+</script>

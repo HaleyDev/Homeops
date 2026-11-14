@@ -1,28 +1,3 @@
-<script setup lang="ts">
-import { useSlots } from 'vue';
-
-import { CircleHelp } from '@vben/icons';
-
-import { Switch, VbenTooltip } from '@vben-core/shadcn-ui';
-
-defineOptions({
-  name: 'PreferenceSwitchItem',
-});
-
-withDefaults(defineProps<{ disabled?: boolean; tip?: string }>(), {
-  disabled: false,
-  tip: '',
-});
-
-const checked = defineModel<boolean>();
-
-const slots = useSlots();
-
-function handleClick() {
-  checked.value = !checked.value;
-}
-</script>
-
 <template>
   <div
     :class="{
@@ -53,3 +28,28 @@ function handleClick() {
     <Switch v-model="checked" @click.stop />
   </div>
 </template>
+
+<script setup lang="ts">
+import { useSlots } from 'vue';
+
+import { CircleHelp } from '@vben/icons';
+
+import { Switch, VbenTooltip } from '@vben-core/shadcn-ui';
+
+defineOptions({
+  name: 'PreferenceSwitchItem',
+});
+
+withDefaults(defineProps<{ disabled?: boolean; tip?: string }>(), {
+  disabled: false,
+  tip: '',
+});
+
+const checked = defineModel<boolean>();
+
+const slots = useSlots();
+
+function handleClick() {
+  checked.value = !checked.value;
+}
+</script>

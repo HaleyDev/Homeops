@@ -61,14 +61,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { ChatMessage } from '../types';
 import type { ToolUsageSummary } from '../message-utils';
+import type { ChatMessage } from '../types';
 
 import { computed, nextTick, ref } from 'vue';
 
 import { IconifyIcon } from '@vben/icons';
-
-import AgentProcessDetails from './agent-process-details.vue';
 
 import { renderMarkdown } from '../markdown';
 import {
@@ -76,6 +74,7 @@ import {
   hasProcessData,
   summarizeToolUsage,
 } from '../message-utils';
+import AgentProcessDetails from './agent-process-details.vue';
 
 const props = defineProps<{
   message: ChatMessage;

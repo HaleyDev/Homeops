@@ -1,27 +1,3 @@
-<script setup lang="ts">
-import type { CheckboxRootEmits, CheckboxRootProps } from 'reka-ui';
-
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { Check, Minus } from '@lucide/vue';
-import { reactiveOmit } from '@vueuse/core';
-import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from 'reka-ui';
-
-const props = defineProps<
-  CheckboxRootProps & {
-    class?: HTMLAttributes['class'];
-    indeterminate?: boolean;
-  }
->();
-const emits = defineEmits<CheckboxRootEmits>();
-
-const delegatedProps = reactiveOmit(props, 'class', 'indeterminate');
-
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
-</script>
-
 <template>
   <CheckboxRoot
     v-slot="slotProps"
@@ -47,3 +23,27 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     </CheckboxIndicator>
   </CheckboxRoot>
 </template>
+
+<script setup lang="ts">
+import type { CheckboxRootEmits, CheckboxRootProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { Check, Minus } from '@lucide/vue';
+import { reactiveOmit } from '@vueuse/core';
+import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from 'reka-ui';
+
+const props = defineProps<
+  CheckboxRootProps & {
+    class?: HTMLAttributes['class'];
+    indeterminate?: boolean;
+  }
+>();
+const emits = defineEmits<CheckboxRootEmits>();
+
+const delegatedProps = reactiveOmit(props, 'class', 'indeterminate');
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>

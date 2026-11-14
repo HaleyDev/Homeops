@@ -1,3 +1,19 @@
+<template>
+  <PinInputRoot
+    :otp="props.otp"
+    data-slot="pin-input"
+    v-bind="forwarded"
+    :class="
+      cn(
+        'flex items-center gap-2 has-disabled:opacity-50 disabled:cursor-not-allowed',
+        props.class,
+      )
+    "
+  >
+    <slot></slot>
+  </PinInputRoot>
+</template>
+
 <script setup lang="ts" generic="Type extends 'text' | 'number' = 'text'">
 import type { PinInputRootEmits, PinInputRootProps } from 'reka-ui';
 
@@ -20,19 +36,3 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-
-<template>
-  <PinInputRoot
-    :otp="props.otp"
-    data-slot="pin-input"
-    v-bind="forwarded"
-    :class="
-      cn(
-        'flex items-center gap-2 has-disabled:opacity-50 disabled:cursor-not-allowed',
-        props.class,
-      )
-    "
-  >
-    <slot></slot>
-  </PinInputRoot>
-</template>

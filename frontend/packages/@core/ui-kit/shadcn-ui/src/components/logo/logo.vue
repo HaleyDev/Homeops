@@ -1,3 +1,42 @@
+<template>
+  <div :class="theme" class="flex h-full items-center text-lg">
+    <a
+      :class="[
+        $attrs.class,
+        shouldShowText
+          ? 'gap-2 px-3 justify-start'
+          : 'w-full p-0 justify-center',
+      ]"
+      :href="href"
+      class="flex h-full items-center overflow-hidden text-lg leading-normal transition-all duration-500"
+    >
+      <img
+        v-if="logoSrc && shouldUseFullLogo"
+        :alt="text"
+        :src="logoSrc"
+        :style="fullLogoStyle"
+        class="w-full"
+      />
+
+      <VbenAvatar
+        v-else-if="logoSrc"
+        :alt="text"
+        :src="logoSrc"
+        :size="logoSize"
+        :fit="fit"
+        class="relative rounded-none bg-transparent"
+      />
+      <template v-if="shouldShowText">
+        <slot name="text">
+          <span class="text-foreground truncate font-semibold text-nowrap">
+            {{ text }}
+          </span>
+        </slot>
+      </template>
+    </a>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -111,42 +150,3 @@ const fullLogoStyle = computed(() => ({
   objectFit: props.fit,
 }));
 </script>
-
-<template>
-  <div :class="theme" class="flex h-full items-center text-lg">
-    <a
-      :class="[
-        $attrs.class,
-        shouldShowText
-          ? 'gap-2 px-3 justify-start'
-          : 'w-full p-0 justify-center',
-      ]"
-      :href="href"
-      class="flex h-full items-center overflow-hidden text-lg leading-normal transition-all duration-500"
-    >
-      <img
-        v-if="logoSrc && shouldUseFullLogo"
-        :alt="text"
-        :src="logoSrc"
-        :style="fullLogoStyle"
-        class="w-full"
-      />
-
-      <VbenAvatar
-        v-else-if="logoSrc"
-        :alt="text"
-        :src="logoSrc"
-        :size="logoSize"
-        :fit="fit"
-        class="relative rounded-none bg-transparent"
-      />
-      <template v-if="shouldShowText">
-        <slot name="text">
-          <span class="text-foreground truncate font-semibold text-nowrap">
-            {{ text }}
-          </span>
-        </slot>
-      </template>
-    </a>
-  </div>
-</template>

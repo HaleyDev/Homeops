@@ -1,3 +1,89 @@
+<template>
+  <CollapsibleRoot
+    v-model:open="open"
+    class="border rounded-[0.5rem] flex flex-col w-full overflow-hidden"
+    :class="[b()]"
+    :unmount-on-hide="false"
+  >
+    <div class="wrapper w-full relative flex flex-col overflow-x-auto">
+      <div class="w-full min-w-fit">
+        <div
+          class="header bg-accent w-full flex-none flex items-center rounded-t-[0.5rem] border-b"
+        >
+          <div
+            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
+          >
+            Name
+          </div>
+          <div
+            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
+          >
+            Value
+          </div>
+          <div
+            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
+          >
+            Description
+          </div>
+        </div>
+
+        <div
+          class="body w-full flex-none flex flex-col overflow-x-hidden"
+          :class="[
+            open && !!props.maxHeight ? 'overflow-y-auto' : 'overflow-y-hidden',
+          ]"
+          :style="bodyStyle"
+        >
+          <CollapsibleParamsItem
+            :data="row"
+            v-for="row in visibleRows"
+            :key="row.key"
+            ref="visibleRefs"
+            v-model:value="modelValue[row.key]"
+            @update:value="(v) => onParamValueChange(v, row.key)"
+          />
+          <CollapsibleContent
+            class="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
+          >
+            <CollapsibleParamsItem
+              :data="row"
+              v-for="row in collapsibleRows"
+              :key="row.key"
+              ref="collapsibleRefs"
+              v-model:value="modelValue[row.key]"
+              @update:value="(v) => onParamValueChange(v, row.key)"
+            />
+          </CollapsibleContent>
+        </div>
+      </div>
+    </div>
+    <div
+      class="gutter h-[1.5rem]"
+      v-if="!open && collapsibleRows.length > 0"
+    ></div>
+    <div
+      class="trigger-bar flex min-h-[2rem] border-t px-5 pt-1 pb-1 rounded-b-[0.5rem] z-1"
+      :class="{
+        'collapsed absolute bottom-px left-px right-px border-t-0 pt-6': !open,
+      }"
+      v-if="collapsibleRows.length > 0"
+    >
+      <CollapsibleTrigger
+        class="cursor-pointer h-[2rem] flex items-center gap-2"
+      >
+        <ChevronsDown
+          class="transition-transform"
+          :size="16"
+          :class="{
+            'rotate-180': open,
+          }"
+        />
+        {{ open ? 'Fold' : 'Unfold' }}
+      </CollapsibleTrigger>
+    </div>
+  </CollapsibleRoot>
+</template>
+
 <script setup lang="ts">
 import type { Recordable } from '@vben-core/typings';
 
@@ -135,92 +221,6 @@ defineExpose({
   updateValues,
 });
 </script>
-
-<template>
-  <CollapsibleRoot
-    v-model:open="open"
-    class="border rounded-[0.5rem] flex flex-col w-full overflow-hidden"
-    :class="[b()]"
-    :unmount-on-hide="false"
-  >
-    <div class="wrapper w-full relative flex flex-col overflow-x-auto">
-      <div class="w-full min-w-fit">
-        <div
-          class="header bg-accent w-full flex-none flex items-center rounded-t-[0.5rem] border-b"
-        >
-          <div
-            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
-          >
-            Name
-          </div>
-          <div
-            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
-          >
-            Value
-          </div>
-          <div
-            class="header-cell pt-2 pb-2 px-5 leading-[1.5rem] flex items-center flex-nowrap"
-          >
-            Description
-          </div>
-        </div>
-
-        <div
-          class="body w-full flex-none flex flex-col overflow-x-hidden"
-          :class="[
-            open && !!props.maxHeight ? 'overflow-y-auto' : 'overflow-y-hidden',
-          ]"
-          :style="bodyStyle"
-        >
-          <CollapsibleParamsItem
-            :data="row"
-            v-for="row in visibleRows"
-            :key="row.key"
-            ref="visibleRefs"
-            v-model:value="modelValue[row.key]"
-            @update:value="(v) => onParamValueChange(v, row.key)"
-          />
-          <CollapsibleContent
-            class="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
-          >
-            <CollapsibleParamsItem
-              :data="row"
-              v-for="row in collapsibleRows"
-              :key="row.key"
-              ref="collapsibleRefs"
-              v-model:value="modelValue[row.key]"
-              @update:value="(v) => onParamValueChange(v, row.key)"
-            />
-          </CollapsibleContent>
-        </div>
-      </div>
-    </div>
-    <div
-      class="gutter h-[1.5rem]"
-      v-if="!open && collapsibleRows.length > 0"
-    ></div>
-    <div
-      class="trigger-bar flex min-h-[2rem] border-t px-5 pt-1 pb-1 rounded-b-[0.5rem] z-1"
-      :class="{
-        'collapsed absolute bottom-px left-px right-px border-t-0 pt-6': !open,
-      }"
-      v-if="collapsibleRows.length > 0"
-    >
-      <CollapsibleTrigger
-        class="cursor-pointer h-[2rem] flex items-center gap-2"
-      >
-        <ChevronsDown
-          class="transition-transform"
-          :size="16"
-          :class="{
-            'rotate-180': open,
-          }"
-        />
-        {{ open ? 'Fold' : 'Unfold' }}
-      </CollapsibleTrigger>
-    </div>
-  </CollapsibleRoot>
-</template>
 <style>
 .vben-collapsible-params {
   .wrapper {

@@ -132,7 +132,7 @@ export async function sendChatStreamApi(
       statusText: response.statusText,
       body: bodyText,
     });
-    throw new Error(`AI 接口请求失败(HTTP ${response.status})`);
+    throw new Error(`AI request failed (HTTP ${response.status}).`);
   }
 
   const reader = response.body.getReader();
@@ -159,11 +159,16 @@ export async function sendChatStreamApi(
       data = JSON.parse(dataLines.join('\n')) as ChatStreamEventData;
     } catch (error) {
       console.error('[AI] Failed to parse SSE frame:', frame, error);
-      throw new Error('AI 流式响应解析失败，请重试。');
+      throw new Error(
+        'Failed to parse the AI streaming response. Please try again.',
+        { cause: error },
+      );
     }
 
     if (eventName === 'error') {
-      throw new Error(data.message || '模型调用失败，请稍后重试。');
+      throw new Error(
+        data.message || 'Model invocation failed. Please try again later.',
+      );
     }
 
     // 回调异常不能吞掉，否则上游仍会继续生成，页面也无法正确结束 loading。
@@ -173,7 +178,9 @@ export async function sendChatStreamApi(
     });
     if (eventName === 'done') {
       if (!data.assistant_message) {
-        throw new Error('AI 完成事件缺少最终助手消息，请重试。');
+        throw new Error(
+          'The AI completion event did not include the final assistant message. Please try again.',
+        );
       }
       assistantMessage = data.assistant_message;
     }
@@ -206,7 +213,9 @@ export async function sendChatStreamApi(
   }
 
   if (!assistantMessage) {
-    throw new Error('流式连接已结束，但未收到完成事件，请重试。');
+    throw new Error(
+      'The stream ended without a completion event. Please try again.',
+    );
   }
   return assistantMessage;
 }

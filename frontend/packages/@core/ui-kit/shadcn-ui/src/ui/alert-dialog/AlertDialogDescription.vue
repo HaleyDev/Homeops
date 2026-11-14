@@ -1,3 +1,13 @@
+<template>
+  <AlertDialogDescription
+    data-slot="alert-dialog-description"
+    v-bind="forwardedProps"
+    :class="cn('text-muted-foreground text-sm', props.class)"
+  >
+    <slot></slot>
+  </AlertDialogDescription>
+</template>
+
 <script setup lang="ts">
 import type { AlertDialogDescriptionProps } from 'reka-ui';
 
@@ -16,13 +26,3 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwardedProps = useForwardProps(delegatedProps);
 </script>
-
-<template>
-  <AlertDialogDescription
-    data-slot="alert-dialog-description"
-    v-bind="forwardedProps"
-    :class="cn('text-muted-foreground text-sm', props.class)"
-  >
-    <slot></slot>
-  </AlertDialogDescription>
-</template>

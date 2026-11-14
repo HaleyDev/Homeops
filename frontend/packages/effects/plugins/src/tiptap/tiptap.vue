@@ -1,3 +1,157 @@
+<template>
+  <div
+    :style="{
+      '--vben-tiptap-min-height': contentMinHeight,
+      '--vben-tiptap-max-height': contentMaxHeight,
+    }"
+    class="vben-tiptap overflow-hidden rounded-xl border border-border bg-card"
+  >
+    <div
+      v-if="toolbar"
+      class="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border p-2 backdrop-blur-[14px]"
+    >
+      <div
+        v-for="(group, groupIndex) in toolbarGroups"
+        :key="groupIndex"
+        class="flex items-center gap-1"
+      >
+        <template v-for="action in group" :key="action.label">
+          <VbenPopover
+            v-if="action.menu || action.palette"
+            :open="action.menu ? getMenuOpen(action) : undefined"
+            :content-props="{ align: 'start', side: 'bottom', sideOffset: 8 }"
+            content-class="w-auto p-2"
+            @update:open="action.menu ? setMenuOpen(action, $event) : undefined"
+          >
+            <template #trigger>
+              <VbenIconButton
+                :aria-label="action.label"
+                :class="getToolbarButtonClass(action)"
+                :disabled="!canRunAction(action)"
+                :tooltip="action.label"
+                tooltip-side="top"
+                variant="ghost"
+              >
+                <template v-if="action.triggerText">
+                  <span class="text-xs font-semibold tracking-wide">
+                    {{
+                      typeof action.triggerText === 'function'
+                        ? action.triggerText(editor)
+                        : action.triggerText
+                    }}
+                  </span>
+                  <ChevronDown class="size-4 opacity-70" />
+                </template>
+                <component
+                  v-else-if="action.icon"
+                  :is="action.icon"
+                  class="size-4"
+                />
+                <span
+                  v-if="getActionIndicatorColor(action)"
+                  :style="{ backgroundColor: getActionIndicatorColor(action) }"
+                  class="absolute bottom-1 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full shadow-[0_0_0_1px_hsl(var(--card)/0.7)]"
+                ></span>
+              </VbenIconButton>
+            </template>
+            <div
+              v-if="action.palette"
+              class="flex max-w-52 flex-wrap items-center gap-2"
+            >
+              <button
+                v-for="color in action.palette.colors"
+                :key="color"
+                :aria-label="`${action.label}-${color}`"
+                :class="getPaletteSwatchClass(action, color)"
+                :style="{ backgroundColor: color }"
+                type="button"
+                @click="applyPaletteColor(action, color)"
+              >
+                <Check
+                  v-if="getPaletteCurrentColor(action) === color"
+                  class="size-4 text-white drop-shadow-sm"
+                />
+              </button>
+              <button
+                v-if="action.palette.clear"
+                class="h-8 w-full rounded-xl border border-border bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                type="button"
+                @click="clearPaletteColor(action)"
+              >
+                {{ $t('ui.tiptap.toolbar.clear') }}
+              </button>
+            </div>
+            <div v-else-if="action.menu" class="flex min-w-32 flex-col gap-1">
+              <button
+                v-for="item in action.menu.items"
+                :key="item.shortLabel"
+                :class="getMenuItemClass(item)"
+                :disabled="!canRunMenuItem(item)"
+                type="button"
+                @click="handleMenuItemClick(action, item)"
+              >
+                <span class="w-7 text-xs font-semibold tracking-wide">
+                  {{ item.shortLabel }}
+                </span>
+                <span class="flex-1">{{ item.label }}</span>
+                <Check
+                  v-if="isMenuItemActive(item)"
+                  class="size-4 text-primary"
+                />
+              </button>
+            </div>
+          </VbenPopover>
+          <VbenIconButton
+            v-else
+            :aria-label="action.label"
+            :class="getToolbarButtonClass(action)"
+            :disabled="!canRunAction(action)"
+            :tooltip="action.label"
+            tooltip-side="top"
+            @click="runAction(action)"
+          >
+            <component :is="action.icon" class="size-4" />
+            <span
+              v-if="getActionIndicatorColor(action)"
+              :style="{ backgroundColor: getActionIndicatorColor(action) }"
+              class="absolute bottom-1 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full shadow-[0_0_0_1px_hsl(var(--card)/0.7)]"
+            ></span>
+          </VbenIconButton>
+        </template>
+        <div
+          v-if="groupIndex < toolbarGroups.length - 1"
+          class="ml-1 h-5 w-px bg-border"
+        ></div>
+      </div>
+      <div v-if="previewable" class="ml-auto flex items-center">
+        <VbenIconButton
+          :aria-label="$t('ui.tiptap.toolbar.preview')"
+          :class="
+            getToolbarButtonClass({
+              action: () => {},
+              label: $t('ui.tiptap.toolbar.preview'),
+            })
+          "
+          :tooltip="$t('ui.tiptap.toolbar.preview')"
+          tooltip-side="top"
+          variant="ghost"
+          @click="openPreviewModal"
+        >
+          <Eye class="size-4" />
+        </VbenIconButton>
+      </div>
+    </div>
+    <EditorContent v-if="editor" :editor="editor" class="p-4" />
+    <PreviewModal
+      v-if="previewable"
+      :title="$t('ui.tiptap.toolbar.preview')"
+      class="w-4/5"
+    >
+      <Preview :content="previewContent" :min-height="320" />
+    </PreviewModal>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type {
   TipTapProps,
@@ -157,160 +311,6 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 </script>
-
-<template>
-  <div
-    :style="{
-      '--vben-tiptap-min-height': contentMinHeight,
-      '--vben-tiptap-max-height': contentMaxHeight,
-    }"
-    class="vben-tiptap overflow-hidden rounded-xl border border-border bg-card"
-  >
-    <div
-      v-if="toolbar"
-      class="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border p-2 backdrop-blur-[14px]"
-    >
-      <div
-        v-for="(group, groupIndex) in toolbarGroups"
-        :key="groupIndex"
-        class="flex items-center gap-1"
-      >
-        <template v-for="action in group" :key="action.label">
-          <VbenPopover
-            v-if="action.menu || action.palette"
-            :open="action.menu ? getMenuOpen(action) : undefined"
-            :content-props="{ align: 'start', side: 'bottom', sideOffset: 8 }"
-            content-class="w-auto p-2"
-            @update:open="action.menu ? setMenuOpen(action, $event) : undefined"
-          >
-            <template #trigger>
-              <VbenIconButton
-                :aria-label="action.label"
-                :class="getToolbarButtonClass(action)"
-                :disabled="!canRunAction(action)"
-                :tooltip="action.label"
-                tooltip-side="top"
-                variant="ghost"
-              >
-                <template v-if="action.triggerText">
-                  <span class="text-xs font-semibold tracking-wide">
-                    {{
-                      typeof action.triggerText === 'function'
-                        ? action.triggerText(editor)
-                        : action.triggerText
-                    }}
-                  </span>
-                  <ChevronDown class="size-4 opacity-70" />
-                </template>
-                <component
-                  v-else-if="action.icon"
-                  :is="action.icon"
-                  class="size-4"
-                />
-                <span
-                  v-if="getActionIndicatorColor(action)"
-                  :style="{ backgroundColor: getActionIndicatorColor(action) }"
-                  class="absolute bottom-1 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full shadow-[0_0_0_1px_hsl(var(--card)/0.7)]"
-                ></span>
-              </VbenIconButton>
-            </template>
-            <div
-              v-if="action.palette"
-              class="flex max-w-52 flex-wrap items-center gap-2"
-            >
-              <button
-                v-for="color in action.palette.colors"
-                :key="color"
-                :aria-label="`${action.label}-${color}`"
-                :class="getPaletteSwatchClass(action, color)"
-                :style="{ backgroundColor: color }"
-                type="button"
-                @click="applyPaletteColor(action, color)"
-              >
-                <Check
-                  v-if="getPaletteCurrentColor(action) === color"
-                  class="size-4 text-white drop-shadow-sm"
-                />
-              </button>
-              <button
-                v-if="action.palette.clear"
-                class="h-8 w-full rounded-xl border border-border bg-secondary text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                type="button"
-                @click="clearPaletteColor(action)"
-              >
-                {{ $t('ui.tiptap.toolbar.clear') }}
-              </button>
-            </div>
-            <div v-else-if="action.menu" class="flex min-w-32 flex-col gap-1">
-              <button
-                v-for="item in action.menu.items"
-                :key="item.shortLabel"
-                :class="getMenuItemClass(item)"
-                :disabled="!canRunMenuItem(item)"
-                type="button"
-                @click="handleMenuItemClick(action, item)"
-              >
-                <span class="w-7 text-xs font-semibold tracking-wide">
-                  {{ item.shortLabel }}
-                </span>
-                <span class="flex-1">{{ item.label }}</span>
-                <Check
-                  v-if="isMenuItemActive(item)"
-                  class="size-4 text-primary"
-                />
-              </button>
-            </div>
-          </VbenPopover>
-          <VbenIconButton
-            v-else
-            :aria-label="action.label"
-            :class="getToolbarButtonClass(action)"
-            :disabled="!canRunAction(action)"
-            :tooltip="action.label"
-            tooltip-side="top"
-            @click="runAction(action)"
-          >
-            <component :is="action.icon" class="size-4" />
-            <span
-              v-if="getActionIndicatorColor(action)"
-              :style="{ backgroundColor: getActionIndicatorColor(action) }"
-              class="absolute bottom-1 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full shadow-[0_0_0_1px_hsl(var(--card)/0.7)]"
-            ></span>
-          </VbenIconButton>
-        </template>
-        <div
-          v-if="groupIndex < toolbarGroups.length - 1"
-          class="ml-1 h-5 w-px bg-border"
-        ></div>
-      </div>
-      <div v-if="previewable" class="ml-auto flex items-center">
-        <VbenIconButton
-          :aria-label="$t('ui.tiptap.toolbar.preview')"
-          :class="
-            getToolbarButtonClass({
-              action: () => {},
-              label: $t('ui.tiptap.toolbar.preview'),
-            })
-          "
-          :tooltip="$t('ui.tiptap.toolbar.preview')"
-          tooltip-side="top"
-          variant="ghost"
-          @click="openPreviewModal"
-        >
-          <Eye class="size-4" />
-        </VbenIconButton>
-      </div>
-    </div>
-    <EditorContent v-if="editor" :editor="editor" class="p-4" />
-    <PreviewModal
-      v-if="previewable"
-      :title="$t('ui.tiptap.toolbar.preview')"
-      class="w-4/5"
-    >
-      <Preview :content="previewContent" :min-height="320" />
-    </PreviewModal>
-  </div>
-</template>
 
 <style scoped>
 .vben-tiptap

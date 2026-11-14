@@ -1,3 +1,13 @@
+<template>
+  <NumberFieldRoot
+    v-slot="slotProps"
+    v-bind="forwarded"
+    :class="cn('grid gap-1.5', props.class)"
+  >
+    <slot v-bind="slotProps"></slot>
+  </NumberFieldRoot>
+</template>
+
 <script setup lang="ts">
 import type { NumberFieldRootEmits, NumberFieldRootProps } from 'reka-ui';
 
@@ -17,13 +27,3 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-
-<template>
-  <NumberFieldRoot
-    v-slot="slotProps"
-    v-bind="forwarded"
-    :class="cn('grid gap-1.5', props.class)"
-  >
-    <slot v-bind="slotProps"></slot>
-  </NumberFieldRoot>
-</template>

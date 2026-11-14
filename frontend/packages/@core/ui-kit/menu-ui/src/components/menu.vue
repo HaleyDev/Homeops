@@ -1,3 +1,36 @@
+<template>
+  <ul
+    ref="menu"
+    :class="[
+      theme,
+      b(),
+      is(mode, true),
+      is(theme, true),
+      is('rounded', rounded),
+      is('collapse', collapse),
+      is('menu-align', mode === 'horizontal'),
+    ]"
+    :style="menuStyle"
+    role="menu"
+  >
+    <template v-if="mode === 'horizontal' && getSlot.showSlotMore">
+      <template v-for="(item, index) in getSlot.slotDefault" :key="index">
+        <component :is="item" />
+      </template>
+      <SubMenu is-sub-menu-more path="sub-menu-more">
+        <template #title>
+          <Ellipsis class="size-4" />
+        </template>
+        <template v-for="(item, index) in getSlot.slotMore" :key="index">
+          <component :is="item" />
+        </template>
+      </SubMenu>
+    </template>
+    <template v-else>
+      <slot></slot>
+    </template>
+  </ul>
+</template>
 <script lang="ts" setup>
 import type { UseResizeObserverReturn } from '@vueuse/core';
 
@@ -335,39 +368,6 @@ function getActivePaths() {
   return activeItem.parentPaths;
 }
 </script>
-<template>
-  <ul
-    ref="menu"
-    :class="[
-      theme,
-      b(),
-      is(mode, true),
-      is(theme, true),
-      is('rounded', rounded),
-      is('collapse', collapse),
-      is('menu-align', mode === 'horizontal'),
-    ]"
-    :style="menuStyle"
-    role="menu"
-  >
-    <template v-if="mode === 'horizontal' && getSlot.showSlotMore">
-      <template v-for="(item, index) in getSlot.slotDefault" :key="index">
-        <component :is="item" />
-      </template>
-      <SubMenu is-sub-menu-more path="sub-menu-more">
-        <template #title>
-          <Ellipsis class="size-4" />
-        </template>
-        <template v-for="(item, index) in getSlot.slotMore" :key="index">
-          <component :is="item" />
-        </template>
-      </SubMenu>
-    </template>
-    <template v-else>
-      <slot></slot>
-    </template>
-  </ul>
-</template>
 
 <style lang="scss">
 $namespace: vben;

@@ -1,11 +1,3 @@
-<script lang="ts" setup>
-import { Slot } from 'reka-ui';
-
-import { useFormField } from './useFormField';
-
-const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
-</script>
-
 <template>
   <Slot
     :id="formItemId"
@@ -18,3 +10,11 @@ const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
     <slot></slot>
   </Slot>
 </template>
+
+<script lang="ts" setup>
+import { Slot } from 'reka-ui';
+
+import { useFormField } from './useFormField';
+
+const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
+</script>

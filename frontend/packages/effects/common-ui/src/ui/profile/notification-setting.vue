@@ -1,29 +1,3 @@
-<script setup lang="ts">
-import type { Recordable } from '@vben/types';
-
-import type { SettingProps } from './types';
-
-import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  Switch,
-} from '@vben-core/shadcn-ui';
-
-withDefaults(defineProps<SettingProps>(), {
-  formSchema: () => [],
-});
-
-const emit = defineEmits<{
-  change: [Recordable<any>];
-}>();
-
-function handleChange(fieldName: string, value: boolean) {
-  emit('change', { fieldName, value });
-}
-</script>
 <template>
   <form class="space-y-8">
     <div class="space-y-4">
@@ -50,3 +24,29 @@ function handleChange(fieldName: string, value: boolean) {
     </div>
   </form>
 </template>
+<script setup lang="ts">
+import type { Recordable } from '@vben/types';
+
+import type { SettingProps } from './types';
+
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  Switch,
+} from '@vben-core/shadcn-ui';
+
+withDefaults(defineProps<SettingProps>(), {
+  formSchema: () => [],
+});
+
+const emit = defineEmits<{
+  change: [Recordable<any>];
+}>();
+
+function handleChange(fieldName: string, value: boolean) {
+  emit('change', { fieldName, value });
+}
+</script>

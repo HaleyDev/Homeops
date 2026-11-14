@@ -15,5 +15,6 @@
     "analytics": "Analytics",
     "workspace": "Workspace"
   },
-  "aiAssistant": "AI Assistant"
+  "aiAssistant": "AI Assistant",
+  "systemSetting": "System Settings"
 }

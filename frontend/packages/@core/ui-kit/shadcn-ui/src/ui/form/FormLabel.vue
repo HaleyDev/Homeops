@@ -1,3 +1,14 @@
+<template>
+  <Label
+    data-slot="form-label"
+    :data-error="!!error"
+    :class="cn(props.class)"
+    :for="formItemId"
+  >
+    <slot></slot>
+  </Label>
+</template>
+
 <script lang="ts" setup>
 import type { LabelProps } from 'reka-ui';
 
@@ -12,14 +23,3 @@ const props = defineProps<LabelProps & { class?: HTMLAttributes['class'] }>();
 
 const { error, formItemId } = useFormField();
 </script>
-
-<template>
-  <Label
-    data-slot="form-label"
-    :data-error="!!error"
-    :class="cn(props.class)"
-    :for="formItemId"
-  >
-    <slot></slot>
-  </Label>
-</template>

@@ -1,27 +1,3 @@
-<script setup lang="ts">
-import { computed } from 'vue';
-
-import { $t } from '@vben/locales';
-import { isWindowsOs } from '@vben/utils';
-
-import SwitchItem from '../switch-item.vue';
-
-defineOptions({
-  name: 'PreferenceGeneralConfig',
-});
-
-const shortcutKeysEnable = defineModel<boolean>('shortcutKeysEnable');
-const shortcutKeysGlobalSearch = defineModel<boolean>(
-  'shortcutKeysGlobalSearch',
-);
-const shortcutKeysLogout = defineModel<boolean>('shortcutKeysLogout');
-// const shortcutKeysPreferences = defineModel<boolean>('shortcutKeysPreferences');
-const shortcutKeysLockScreen = defineModel<boolean>('shortcutKeysLockScreen');
-const shortcutKeysEscape = defineModel<boolean>('shortcutKeysEscape');
-
-const altView = computed(() => (isWindowsOs() ? 'Alt' : '⌥'));
-</script>
-
 <template>
   <SwitchItem v-model="shortcutKeysEnable">
     {{ $t('preferences.shortcutKeys.title') }}
@@ -53,3 +29,27 @@ const altView = computed(() => (isWindowsOs() ? 'Alt' : '⌥'));
     <template #shortcut> Esc </template>
   </SwitchItem>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+import { $t } from '@vben/locales';
+import { isWindowsOs } from '@vben/utils';
+
+import SwitchItem from '../switch-item.vue';
+
+defineOptions({
+  name: 'PreferenceGeneralConfig',
+});
+
+const shortcutKeysEnable = defineModel<boolean>('shortcutKeysEnable');
+const shortcutKeysGlobalSearch = defineModel<boolean>(
+  'shortcutKeysGlobalSearch',
+);
+const shortcutKeysLogout = defineModel<boolean>('shortcutKeysLogout');
+// const shortcutKeysPreferences = defineModel<boolean>('shortcutKeysPreferences');
+const shortcutKeysLockScreen = defineModel<boolean>('shortcutKeysLockScreen');
+const shortcutKeysEscape = defineModel<boolean>('shortcutKeysEscape');
+
+const altView = computed(() => (isWindowsOs() ? 'Alt' : '⌥'));
+</script>

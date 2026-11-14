@@ -1,15 +1,3 @@
-<script lang="ts" setup>
-import { ChevronDown } from '@vben-core/icons';
-import { cn } from '@vben-core/shared/utils';
-
-const props = defineProps<{
-  class?: string;
-}>();
-
-// 控制箭头展开/收起状态
-const collapsed = defineModel<boolean>({ default: false });
-</script>
-
 <template>
   <div
     :class="cn('vben-link inline-flex items-center', props.class)"
@@ -29,3 +17,15 @@ const collapsed = defineModel<boolean>({ default: false });
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { ChevronDown } from '@vben-core/icons';
+import { cn } from '@vben-core/shared/utils';
+
+const props = defineProps<{
+  class?: string;
+}>();
+
+// 控制箭头展开/收起状态
+const collapsed = defineModel<boolean>({ default: false });
+</script>

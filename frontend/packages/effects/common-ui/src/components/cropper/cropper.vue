@@ -1,3 +1,146 @@
+<template>
+  <div
+    :style="{
+      width: `${width || CROPPER_CONSTANTS.DEFAULT_WIDTH}px`,
+      height: `${height || CROPPER_CONSTANTS.DEFAULT_HEIGHT}px`,
+    }"
+    class="cropper-action-wrapper"
+  >
+    <div
+      ref="containerRef"
+      class="cropper-container"
+      :style="{
+        width: `${containerWidth}px`,
+        height: `${containerHeight}px`,
+      }"
+    >
+      <!-- 原图展示 - 自适应尺寸 -->
+      <img
+        ref="bgImageRef"
+        class="cropper-image"
+        :src="img"
+        @load="handleImageLoad"
+        :style="{
+          maxWidth: '100%',
+          maxHeight: '100%',
+          objectFit: 'contain',
+        }"
+        alt="裁剪原图"
+      />
+
+      <!-- 遮罩层 -->
+      <div
+        class="cropper-mask"
+        :style="{
+          display: isCropperVisible ? 'block' : 'none',
+          width: '100%',
+          height: '100%',
+        }"
+      >
+        <div
+          ref="maskViewRef"
+          class="cropper-mask-view"
+          :style="{
+            backgroundImage: `url(${img})`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            clipPath: `inset(${currentDimension[0]}px ${currentDimension[1]}px ${currentDimension[2]}px ${currentDimension[3]}px)`,
+            width: '100%',
+            height: '100%',
+          }"
+        ></div>
+      </div>
+
+      <!-- 裁剪框 -->
+      <div
+        ref="cropperRef"
+        class="cropper-box"
+        :style="{
+          display: isCropperVisible ? 'block' : 'none',
+          width: '100%',
+          height: '100%',
+        }"
+      >
+        <div
+          class="cropper-view"
+          :style="{
+            inset: `${currentDimension[0]}px ${currentDimension[1]}px ${currentDimension[2]}px ${currentDimension[3]}px`,
+          }"
+        >
+          <!-- 裁剪框辅助线-->
+          <span class="cropper-dashed-h"></span>
+          <span class="cropper-dashed-v"></span>
+
+          <!-- 裁剪框拖拽区域 -->
+          <span
+            class="cropper-move-area"
+            @mousedown="handleMouseDown($event, 'move')"
+          ></span>
+
+          <!-- 边框线 -->
+          <span class="cropper-line-e"></span>
+          <span class="cropper-line-n"></span>
+          <span class="cropper-line-w"></span>
+          <span class="cropper-line-s"></span>
+
+          <!-- 边角拖拽点 -->
+          <span
+            class="cropper-point cropper-point-ne"
+            @mousedown="handleMouseDown($event, 'top-right')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-nw"
+            @mousedown="handleMouseDown($event, 'top-left')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-sw"
+            @mousedown="handleMouseDown($event, 'bottom-left')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-se"
+            @mousedown="handleMouseDown($event, 'bottom-right')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+
+          <!-- 边中点拖拽点 -->
+          <span
+            class="cropper-point cropper-point-e"
+            @mousedown="handleMouseDown($event, 'right')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-n"
+            @mousedown="handleMouseDown($event, 'top')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-w"
+            @mousedown="handleMouseDown($event, 'left')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+          <span
+            class="cropper-point cropper-point-s"
+            @mousedown="handleMouseDown($event, 'bottom')"
+          >
+            <span class="cropper-point-inner"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -116,7 +259,9 @@ const parseAndValidateAspectRatio = (): null | number => {
   // 验证比例格式
   const ratioRegex = /^[1-9]\d*:[1-9]\d*$/;
   if (!ratioRegex.test(props.aspectRatio)) {
-    console.warn('裁剪比例格式错误，应为 "数字:数字" 格式，如 "16:9"');
+    console.warn(
+      'Invalid aspect ratio. Use the "width:height" format, such as "16:9".',
+    );
     return null;
   }
 
@@ -125,7 +270,9 @@ const parseAndValidateAspectRatio = (): null | number => {
 
   // 验证解析结果有效性
   if (Number.isNaN(width) || Number.isNaN(height) || !width || !height) {
-    console.warn('裁剪比例解析失败，宽高必须为正整数');
+    console.warn(
+      'Failed to parse the aspect ratio. Width and height must be positive integers.',
+    );
     return null;
   }
 
@@ -558,7 +705,7 @@ const getCropImage = async (
     const timeout = setTimeout(() => {
       tempImg.removeEventListener('load', handleLoad);
       tempImg.removeEventListener('error', handleError);
-      reject(new Error('图片加载超时，超时时间10秒'));
+      reject(new Error('Image loading timed out after 10 seconds.'));
     }, 10_000);
     const handleLoad = () => {
       clearTimeout(timeout);
@@ -571,7 +718,7 @@ const getCropImage = async (
       clearTimeout(timeout);
       tempImg.removeEventListener('load', handleLoad);
       tempImg.removeEventListener('error', handleError);
-      reject(new Error(`图片加载失败: ${err.message}`));
+      reject(new Error(`Failed to load the image: ${err.message}`));
     };
 
     tempImg.addEventListener('load', handleLoad);
@@ -670,7 +817,7 @@ const getCropImage = async (
           );
         });
   } catch (error) {
-    console.error('图片导出失败:', error);
+    console.error('Failed to export the image:', error);
   }
 };
 
@@ -706,149 +853,6 @@ onUnmounted(() => {
 
 defineExpose({ getCropImage });
 </script>
-
-<template>
-  <div
-    :style="{
-      width: `${width || CROPPER_CONSTANTS.DEFAULT_WIDTH}px`,
-      height: `${height || CROPPER_CONSTANTS.DEFAULT_HEIGHT}px`,
-    }"
-    class="cropper-action-wrapper"
-  >
-    <div
-      ref="containerRef"
-      class="cropper-container"
-      :style="{
-        width: `${containerWidth}px`,
-        height: `${containerHeight}px`,
-      }"
-    >
-      <!-- 原图展示 - 自适应尺寸 -->
-      <img
-        ref="bgImageRef"
-        class="cropper-image"
-        :src="img"
-        @load="handleImageLoad"
-        :style="{
-          maxWidth: '100%',
-          maxHeight: '100%',
-          objectFit: 'contain',
-        }"
-        alt="裁剪原图"
-      />
-
-      <!-- 遮罩层 -->
-      <div
-        class="cropper-mask"
-        :style="{
-          display: isCropperVisible ? 'block' : 'none',
-          width: '100%',
-          height: '100%',
-        }"
-      >
-        <div
-          ref="maskViewRef"
-          class="cropper-mask-view"
-          :style="{
-            backgroundImage: `url(${img})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            clipPath: `inset(${currentDimension[0]}px ${currentDimension[1]}px ${currentDimension[2]}px ${currentDimension[3]}px)`,
-            width: '100%',
-            height: '100%',
-          }"
-        ></div>
-      </div>
-
-      <!-- 裁剪框 -->
-      <div
-        ref="cropperRef"
-        class="cropper-box"
-        :style="{
-          display: isCropperVisible ? 'block' : 'none',
-          width: '100%',
-          height: '100%',
-        }"
-      >
-        <div
-          class="cropper-view"
-          :style="{
-            inset: `${currentDimension[0]}px ${currentDimension[1]}px ${currentDimension[2]}px ${currentDimension[3]}px`,
-          }"
-        >
-          <!-- 裁剪框辅助线-->
-          <span class="cropper-dashed-h"></span>
-          <span class="cropper-dashed-v"></span>
-
-          <!-- 裁剪框拖拽区域 -->
-          <span
-            class="cropper-move-area"
-            @mousedown="handleMouseDown($event, 'move')"
-          ></span>
-
-          <!-- 边框线 -->
-          <span class="cropper-line-e"></span>
-          <span class="cropper-line-n"></span>
-          <span class="cropper-line-w"></span>
-          <span class="cropper-line-s"></span>
-
-          <!-- 边角拖拽点 -->
-          <span
-            class="cropper-point cropper-point-ne"
-            @mousedown="handleMouseDown($event, 'top-right')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-nw"
-            @mousedown="handleMouseDown($event, 'top-left')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-sw"
-            @mousedown="handleMouseDown($event, 'bottom-left')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-se"
-            @mousedown="handleMouseDown($event, 'bottom-right')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-
-          <!-- 边中点拖拽点 -->
-          <span
-            class="cropper-point cropper-point-e"
-            @mousedown="handleMouseDown($event, 'right')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-n"
-            @mousedown="handleMouseDown($event, 'top')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-w"
-            @mousedown="handleMouseDown($event, 'left')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-          <span
-            class="cropper-point cropper-point-s"
-            @mousedown="handleMouseDown($event, 'bottom')"
-          >
-            <span class="cropper-point-inner"></span>
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 @reference "@vben/tailwind-config/theme";

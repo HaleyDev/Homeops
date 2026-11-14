@@ -1,35 +1,3 @@
-<script lang="ts" setup>
-import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router';
-
-import { unref } from 'vue';
-import { RouterView } from 'vue-router';
-
-import { usePreferences } from '@vben/preferences';
-import { getTabKey, storeToRefs, useTabbarStore } from '@vben/stores';
-
-import { transformComponent, useLayoutHook } from '../../hooks';
-import { IFrameRouterView } from '../../iframe';
-import { RouteCachedPage, RouteCachedView } from '../../route-cached';
-
-defineOptions({ name: 'LayoutContent' });
-
-const tabbarStore = useTabbarStore();
-const { keepAlive } = usePreferences();
-
-const { getCachedTabs, getExcludeCachedTabs, renderRouteView } =
-  storeToRefs(tabbarStore);
-
-const { getEnabledTransition, getTransitionName } = useLayoutHook();
-
-/**
- * 是否显示component
- * @param route
- */
-const showComponent = (route: RouteLocationNormalizedLoadedGeneric) => {
-  return !route.meta.domCached && unref(renderRouteView);
-};
-</script>
-
 <template>
   <div class="page-route-container relative h-full">
     <IFrameRouterView />
@@ -86,6 +54,38 @@ const showComponent = (route: RouteLocationNormalizedLoadedGeneric) => {
     </RouterView>
   </div>
 </template>
+
+<script lang="ts" setup>
+import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router';
+
+import { unref } from 'vue';
+import { RouterView } from 'vue-router';
+
+import { usePreferences } from '@vben/preferences';
+import { getTabKey, storeToRefs, useTabbarStore } from '@vben/stores';
+
+import { transformComponent, useLayoutHook } from '../../hooks';
+import { IFrameRouterView } from '../../iframe';
+import { RouteCachedPage, RouteCachedView } from '../../route-cached';
+
+defineOptions({ name: 'LayoutContent' });
+
+const tabbarStore = useTabbarStore();
+const { keepAlive } = usePreferences();
+
+const { getCachedTabs, getExcludeCachedTabs, renderRouteView } =
+  storeToRefs(tabbarStore);
+
+const { getEnabledTransition, getTransitionName } = useLayoutHook();
+
+/**
+ * 是否显示component
+ * @param route
+ */
+const showComponent = (route: RouteLocationNormalizedLoadedGeneric) => {
+  return !route.meta.domCached && unref(renderRouteView);
+};
+</script>
 
 <style>
 /* 优化router动画切换切换重叠问题 */

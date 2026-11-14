@@ -1,3 +1,38 @@
+<template>
+  <div class="count-to" v-bind="$attrs">
+    <slot name="prefix">
+      <div
+        class="count-to-prefix"
+        :style="prefixStyle"
+        :class="prefixClass"
+        v-if="prefix"
+      >
+        {{ prefix }}
+      </div>
+    </slot>
+    <div class="count-to-main" :class="mainClass" :style="mainStyle">
+      <span>{{ numMain }}</span>
+      <span
+        class="count-to-main-decimal"
+        v-if="decimals > 0"
+        :class="decimalClass"
+        :style="decimalStyle"
+      >
+        {{ numDec }}
+      </span>
+    </div>
+    <slot name="suffix">
+      <div
+        class="count-to-suffix"
+        :style="suffixStyle"
+        :class="suffixClass"
+        v-if="suffix"
+      >
+        {{ suffix }}
+      </div>
+    </slot>
+  </div>
+</template>
 <script lang="ts" setup>
 import type { CountToProps } from './types';
 
@@ -63,41 +98,6 @@ const numDec = computed(() => {
   );
 });
 </script>
-<template>
-  <div class="count-to" v-bind="$attrs">
-    <slot name="prefix">
-      <div
-        class="count-to-prefix"
-        :style="prefixStyle"
-        :class="prefixClass"
-        v-if="prefix"
-      >
-        {{ prefix }}
-      </div>
-    </slot>
-    <div class="count-to-main" :class="mainClass" :style="mainStyle">
-      <span>{{ numMain }}</span>
-      <span
-        class="count-to-main-decimal"
-        v-if="decimals > 0"
-        :class="decimalClass"
-        :style="decimalStyle"
-      >
-        {{ numDec }}
-      </span>
-    </div>
-    <slot name="suffix">
-      <div
-        class="count-to-suffix"
-        :style="suffixStyle"
-        :class="suffixClass"
-        v-if="suffix"
-      >
-        {{ suffix }}
-      </div>
-    </slot>
-  </div>
-</template>
 <style lang="scss" scoped>
 .count-to {
   display: flex;

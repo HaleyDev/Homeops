@@ -1,3 +1,38 @@
+<template>
+  <VbenButton
+    v-if="!showTooltip"
+    :class="cn('rounded-full', props.class)"
+    :disabled="disabled"
+    :variant="variant"
+    size="icon"
+    @click="handleClick"
+  >
+    <slot></slot>
+  </VbenButton>
+
+  <VbenTooltip
+    v-else
+    :delay-duration="tooltipDelayDuration"
+    :side="tooltipSide"
+  >
+    <template #trigger>
+      <VbenButton
+        :class="cn('rounded-full', props.class)"
+        :disabled="disabled"
+        :variant="variant"
+        size="icon"
+        @click="handleClick"
+      >
+        <slot></slot>
+      </VbenButton>
+    </template>
+    <slot v-if="slots.tooltip" name="tooltip"> </slot>
+    <template v-else>
+      {{ tooltip }}
+    </template>
+  </VbenTooltip>
+</template>
+
 <script setup lang="ts">
 import type { ButtonVariants } from '../../ui';
 import type { VbenButtonProps } from './button';
@@ -41,38 +76,3 @@ function handleClick(e: MouseEvent) {
   }
 }
 </script>
-
-<template>
-  <VbenButton
-    v-if="!showTooltip"
-    :class="cn('rounded-full', props.class)"
-    :disabled="disabled"
-    :variant="variant"
-    size="icon"
-    @click="handleClick"
-  >
-    <slot></slot>
-  </VbenButton>
-
-  <VbenTooltip
-    v-else
-    :delay-duration="tooltipDelayDuration"
-    :side="tooltipSide"
-  >
-    <template #trigger>
-      <VbenButton
-        :class="cn('rounded-full', props.class)"
-        :disabled="disabled"
-        :variant="variant"
-        size="icon"
-        @click="handleClick"
-      >
-        <slot></slot>
-      </VbenButton>
-    </template>
-    <slot v-if="slots.tooltip" name="tooltip"> </slot>
-    <template v-else>
-      {{ tooltip }}
-    </template>
-  </VbenTooltip>
-</template>

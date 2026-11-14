@@ -1,3 +1,12 @@
+<template>
+  <SwitchItem v-model="appColorWeakMode">
+    {{ $t('preferences.theme.weakMode') }}
+  </SwitchItem>
+  <SwitchItem v-model="appColorGrayMode">
+    {{ $t('preferences.theme.grayMode') }}
+  </SwitchItem>
+</template>
+
 <script setup lang="ts">
 import { $t } from '@vben/locales';
 
@@ -15,12 +24,3 @@ const appColorGrayMode = defineModel<boolean>('appColorGrayMode', {
   default: false,
 });
 </script>
-
-<template>
-  <SwitchItem v-model="appColorWeakMode">
-    {{ $t('preferences.theme.weakMode') }}
-  </SwitchItem>
-  <SwitchItem v-model="appColorGrayMode">
-    {{ $t('preferences.theme.grayMode') }}
-  </SwitchItem>
-</template>

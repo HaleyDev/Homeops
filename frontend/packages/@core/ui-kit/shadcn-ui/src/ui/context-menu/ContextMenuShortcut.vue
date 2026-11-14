@@ -1,13 +1,3 @@
-<script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-const props = defineProps<{
-  class?: HTMLAttributes['class'];
-}>();
-</script>
-
 <template>
   <span
     data-slot="context-menu-shortcut"
@@ -18,3 +8,13 @@ const props = defineProps<{
     <slot></slot>
   </span>
 </template>
+
+<script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+const props = defineProps<{
+  class?: HTMLAttributes['class'];
+}>();
+</script>

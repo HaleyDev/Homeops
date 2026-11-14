@@ -1,3 +1,14 @@
+<template>
+  <div
+    class="flex min-h-[100dvh] w-full flex-col items-center justify-center gap-4"
+  >
+    <div
+      class="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+    ></div>
+    <p class="text-muted-foreground text-sm">正在完成 GitLab 登录…</p>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -38,7 +49,7 @@ onMounted(async () => {
     // 与 authStore.authLogin 后半段相同的登录态恢复流程
     const { data: accessToken } = await refreshTokenApi();
     if (!accessToken) {
-      throw new Error('refresh token 无效');
+      throw new Error('Invalid refresh token.');
     }
     accessStore.setAccessToken(accessToken);
 
@@ -48,9 +59,7 @@ onMounted(async () => {
     ]);
     accessStore.setAccessCodes(accessCodes);
 
-    await router.replace(
-      userInfo.homePath || preferences.app.defaultHomePath,
-    );
+    await router.replace(userInfo.homePath || preferences.app.defaultHomePath);
   } catch {
     // 换 token 失败（Cookie 缺失/过期），退回登录页
     await toLogin('登录状态已失效，请重新登录');
@@ -66,12 +75,3 @@ async function toLogin(message: string) {
   await router.replace({ path: LOGIN_PATH });
 }
 </script>
-
-<template>
-  <div class="flex min-h-[100dvh] w-full flex-col items-center justify-center gap-4">
-    <div
-      class="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-    ></div>
-    <p class="text-muted-foreground text-sm">正在完成 GitLab 登录…</p>
-  </div>
-</template>

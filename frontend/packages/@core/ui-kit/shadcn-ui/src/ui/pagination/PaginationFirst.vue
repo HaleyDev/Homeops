@@ -1,3 +1,23 @@
+<template>
+  <PaginationFirst
+    data-slot="pagination-first"
+    :class="
+      cn(
+        buttonVariants({ variant: 'ghost', size }),
+        'gap-1 px-2.5 sm:pr-2.5',
+        props.class,
+      )
+    "
+    v-bind="forwarded"
+  >
+    <Button :class="cn('size-8 p-0', props.class)" variant="outline">
+      <slot>
+        <ChevronsLeft class="size-4" />
+      </slot>
+    </Button>
+  </PaginationFirst>
+</template>
+
 <script setup lang="ts">
 import type { PaginationFirstProps } from 'reka-ui';
 
@@ -28,23 +48,3 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, 'class', 'size');
 const forwarded = useForwardProps(delegatedProps);
 </script>
-
-<template>
-  <PaginationFirst
-    data-slot="pagination-first"
-    :class="
-      cn(
-        buttonVariants({ variant: 'ghost', size }),
-        'gap-1 px-2.5 sm:pr-2.5',
-        props.class,
-      )
-    "
-    v-bind="forwarded"
-  >
-    <Button :class="cn('size-8 p-0', props.class)" variant="outline">
-      <slot>
-        <ChevronsLeft class="size-4" />
-      </slot>
-    </Button>
-  </PaginationFirst>
-</template>

@@ -45,7 +45,10 @@ function createStreamResponse(
   });
 }
 
-function mockStreamResponse(chunks: Array<string | Uint8Array>, onCancel?: () => void) {
+function mockStreamResponse(
+  chunks: Array<string | Uint8Array>,
+  onCancel?: () => void,
+) {
   const response = createStreamResponse(
     chunks.map((chunk) =>
       typeof chunk === 'string' ? encoder.encode(chunk) : chunk,
@@ -122,31 +125,34 @@ describe('sendChatStreamApi', () => {
     );
   });
 
-  it('EOF 没有 done 时 reject，避免页面永久 loading', async () => {
+  it('eof 没有 done 时 reject，避免页面永久 loading', async () => {
     mockStreamResponse(['event: text\ndata: {"detail":"部分正文"}\n\n']);
 
     await expect(
       sendChatStreamApi({ message: 'test', onEvent: () => {} }),
-    ).rejects.toThrow('未收到完成事件');
+    ).rejects.toThrow('without a completion event');
   });
 
   it('解析异常会 cancel reader 并 releaseLock', async () => {
     const cancel = vi.fn();
     const response = mockStreamResponse(
-      ['event: text\ndata: {bad json}\n\n', 'event: text\ndata: {"detail":"later"}'],
+      [
+        'event: text\ndata: {bad json}\n\n',
+        'event: text\ndata: {"detail":"later"}',
+      ],
       cancel,
     );
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await expect(
       sendChatStreamApi({ message: 'test', onEvent: () => {} }),
-    ).rejects.toThrow('响应解析失败');
+    ).rejects.toThrow('Failed to parse the AI streaming response');
     expect(cancel).toHaveBeenCalledTimes(1);
     expect(response.body?.locked).toBe(false);
     expect(error).toHaveBeenCalled();
   });
 
-  it('UI 回调异常不会被吞掉，并会取消上游读取', async () => {
+  it('ui 回调异常不会被吞掉，并会取消上游读取', async () => {
     const cancel = vi.fn();
     const response = mockStreamResponse(
       [
@@ -170,14 +176,16 @@ describe('sendChatStreamApi', () => {
   });
 
   it('服务端 error 帧进入 reject，done 缺最终消息也 reject', async () => {
-    mockStreamResponse(['event: error\ndata: {"message":"后端失败"}\n\n']);
+    mockStreamResponse([
+      'event: error\ndata: {"message":"Backend failure"}\n\n',
+    ]);
     await expect(
       sendChatStreamApi({ message: 'test', onEvent: () => {} }),
-    ).rejects.toThrow('后端失败');
+    ).rejects.toThrow('Backend failure');
 
     mockStreamResponse(['event: done\ndata: {"total_tokens":1}\n\n']);
     await expect(
       sendChatStreamApi({ message: 'test', onEvent: () => {} }),
-    ).rejects.toThrow('缺少最终助手消息');
+    ).rejects.toThrow('did not include the final assistant message');
   });
 });

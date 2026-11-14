@@ -1,3 +1,37 @@
+<template>
+  <div>
+    <Title>
+      <slot name="title">
+        {{ title || $t('authentication.forgetPassword') }} 🤦🏻‍♂️
+      </slot>
+      <template #desc>
+        <slot name="subTitle">
+          {{ subTitle || $t('authentication.forgetPasswordSubtitle') }}
+        </slot>
+      </template>
+    </Title>
+    <Form />
+
+    <div>
+      <VbenButton
+        :class="{
+          'cursor-wait': loading,
+        }"
+        aria-label="submit"
+        class="mt-2 w-full"
+        @click="handleSubmit"
+      >
+        <slot name="submitButtonText">
+          {{ submitButtonText || $t('authentication.sendResetLink') }}
+        </slot>
+      </VbenButton>
+      <VbenButton class="mt-4 w-full" variant="outline" @click="goToLogin()">
+        {{ $t('common.back') }}
+      </VbenButton>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { VbenFormSchema } from '@vben-core/form-ui';
 
@@ -80,37 +114,3 @@ defineExpose({
   getFormApi: () => formApi,
 });
 </script>
-
-<template>
-  <div>
-    <Title>
-      <slot name="title">
-        {{ title || $t('authentication.forgetPassword') }} 🤦🏻‍♂️
-      </slot>
-      <template #desc>
-        <slot name="subTitle">
-          {{ subTitle || $t('authentication.forgetPasswordSubtitle') }}
-        </slot>
-      </template>
-    </Title>
-    <Form />
-
-    <div>
-      <VbenButton
-        :class="{
-          'cursor-wait': loading,
-        }"
-        aria-label="submit"
-        class="mt-2 w-full"
-        @click="handleSubmit"
-      >
-        <slot name="submitButtonText">
-          {{ submitButtonText || $t('authentication.sendResetLink') }}
-        </slot>
-      </VbenButton>
-      <VbenButton class="mt-4 w-full" variant="outline" @click="goToLogin()">
-        {{ $t('common.back') }}
-      </VbenButton>
-    </div>
-  </div>
-</template>

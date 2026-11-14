@@ -8,21 +8,22 @@ from urllib.parse import quote_plus
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.genai import types
 
-from .agent.agent import root_agent
+from system_setting.models import ModelType
+from system_setting.services import ModelConfigurationError, get_effective_model_config
+
+from .agent.agent import create_agent
 from .streaming import TurnResult, TurnStreamCollector
 
 APP_NAME = "homeops_assistant"
 
 _session_service = None
-_runner = None
 logger = logging.getLogger(__name__)
 
 
-def get_runner():
-    global _session_service, _runner
-    if _runner is None:
+def get_session_service():
+    global _session_service
+    if _session_service is None:
         from django.conf import settings as dj_settings
-        from google.adk.runners import Runner
         from google.adk.sessions import DatabaseSessionService
         from sqlalchemy.pool import NullPool
 
@@ -33,10 +34,22 @@ def get_runner():
             "?charset=utf8mb4"
         )
         _session_service = DatabaseSessionService(db_url, poolclass=NullPool)
-        _runner = Runner(
-            agent=root_agent, app_name=APP_NAME, session_service=_session_service
-        )
-    return _runner, _session_service
+    return _session_service
+
+
+def get_runner():
+    """Build a fresh LLM/Agent/Runner for every new assistant turn."""
+
+    from google.adk.runners import Runner
+
+    config = get_effective_model_config(ModelType.TEXT)
+    session_service = get_session_service()
+    runner = Runner(
+        agent=create_agent(config),
+        app_name=APP_NAME,
+        session_service=session_service,
+    )
+    return runner, session_service
 
 
 def _sse(event: str, data: Mapping[str, Any]) -> str:
@@ -79,7 +92,11 @@ def chat_stream(
     """
 
     yield _sse("session", {"session_id": session_id})
-    runner, session_service = get_runner()
+    try:
+        runner, session_service = get_runner()
+    except ModelConfigurationError as exc:
+        yield _sse("error", {"message": str(exc)})
+        return
     collector = TurnStreamCollector()
     total_tokens = None
     loop = asyncio.new_event_loop()
@@ -106,7 +123,7 @@ def chat_stream(
             logger.exception("ADK chat stream failed session=%s", session_id)
             yield _sse(
                 "error",
-                {"message": "AI 助手服务暂时不可用，请稍后重试。"},
+                {"message": "The AI assistant is temporarily unavailable. Please try again later."},
             )
         else:
             result = collector.finish()
@@ -117,7 +134,8 @@ def chat_stream(
                     "Assistant message persistence failed session=%s", session_id
                 )
                 yield _sse(
-                    "error", {"message": "助手消息保存失败，请稍后重试。"}
+                    "error",
+                    {"message": "The assistant message could not be saved. Please try again later."},
                 )
             else:
                 yield _sse(

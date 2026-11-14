@@ -1,3 +1,99 @@
+<template>
+  <!-- 高度按 Vben 布局(头部 + 标签栏 + 内边距)预留,可按实际主题微调;
+       bg-muted/50:浅色下给白卡片垫出灰色底衬,否则白上叠白全靠细边框区分 -->
+  <div
+    class="bg-muted/50 ai-assistant-page flex h-[calc(100vh-120px)] min-h-[480px] w-full gap-3 rounded-xl p-2"
+  >
+    <!-- 左侧:会话列表 -->
+    <aside
+      class="bg-card border-border flex w-56 shrink-0 flex-col gap-2 rounded-xl border p-2"
+    >
+      <button
+        class="border-border text-foreground hover:bg-accent w-full rounded-md border px-2 py-1.5 text-sm transition select-none hover:cursor-pointer"
+        type="button"
+        @click="handleNewConversation"
+      >
+        + 新建会话
+      </button>
+      <div class="min-h-0 flex-1 overflow-auto">
+        <!-- 组件把白底/280px 宽度/内边距以内联样式写在列表上,
+             必须通过 style prop 覆盖(合并规则:传入值优先于内置默认值) -->
+        <Conversations
+          v-model:active="activeConversation"
+          :items="conversationItems"
+          :style="{
+            backgroundColor: 'transparent',
+            height: 'auto',
+            padding: '0',
+            width: '100%',
+          }"
+          row-key="id"
+          @change="handleConversationChange"
+        >
+          <template #label="{ item }">
+            <div class="flex min-w-0 flex-1 items-center gap-2">
+              <span
+                class="min-w-0 flex-1 truncate"
+                :title="String(item.label ?? '')"
+              >
+                {{ item.label }}
+              </span>
+              <button
+                :aria-label="`删除会话：${item.label ?? ''}`"
+                :title="`删除会话：${item.label ?? ''}`"
+                class="text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-md transition hover:cursor-pointer hover:bg-[var(--el-color-danger-light-9)] hover:text-[var(--el-color-danger)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--el-color-danger)]"
+                type="button"
+                @click.stop="handleDeleteConversation(String(item.id ?? ''))"
+              >
+                <IconifyIcon
+                  aria-hidden="true"
+                  class="size-4"
+                  icon="lucide:trash-2"
+                />
+              </button>
+            </div>
+          </template>
+        </Conversations>
+      </div>
+    </aside>
+
+    <!-- 右侧:聊天区 -->
+    <main
+      class="bg-card border-border flex min-w-0 flex-1 flex-col gap-2 rounded-xl border p-3"
+    >
+      <div class="min-h-0 flex-1">
+        <BubbleList :list="messages" class="h-full" max-height="100%">
+          <!-- AI 过程、Markdown 与工具入口统一渲染；用户气泡保持纯文本 -->
+          <template #content="{ item }">
+            <AssistantMessageContent
+              v-if="item.role === 'ai'"
+              v-model:process-expanded="item.processExpanded"
+              :message="item"
+            />
+            <span v-else class="whitespace-pre-wrap">{{ item.content }}</span>
+          </template>
+        </BubbleList>
+      </div>
+      <div
+        v-if="streamStatus && streamingSessionId === sessionId"
+        class="text-muted-foreground px-1 text-xs"
+      >
+        {{ streamStatus }}
+      </div>
+      <div class="shrink-0">
+        <XSender
+          ref="senderRef"
+          :loading="senderLoading"
+          clearable
+          placeholder="请输入你的问题…"
+          @cancel="handleCancel"
+          @submit="handleSubmit"
+        />
+      </div>
+    </main>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type {
   BubbleListProps,
@@ -5,19 +101,13 @@ import type {
 import type { ConversationItem } from 'vue-element-plus-x/types/Conversations';
 
 import type { ChatConversation, ChatMessage } from './types';
+
 import type { ChatApiMessage } from '#/api/ai';
 
-import { IconifyIcon } from '@vben/icons';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { BubbleList, Conversations, XSender } from 'vue-element-plus-x';
 
-// Element Plus 基础变量表(:root 的 --el-* 定义)。
-// vue-element-plus-x 只带组件样式不带变量表,缺了它:
-// 气泡圆角/边框/底色等所有 var(--el-*) 全部失效(方形气泡、无边框)。
-import 'element-plus/theme-chalk/el-var.css';
-// Element Plus 暗色变量表:html.dark 下重定义 --el-* 变量,
-// Bubble 等纯变量组件与 el-button/el-avatar 自动跟随暗色主题
-import 'element-plus/theme-chalk/dark/css-vars.css';
+import { IconifyIcon } from '@vben/icons';
 
 import { dialog, message } from '#/adapter/naive';
 import {
@@ -37,13 +127,21 @@ import {
   normalizeChatMessage,
 } from './message-utils';
 
+// Element Plus 基础变量表(:root 的 --el-* 定义)。
+// vue-element-plus-x 只带组件样式不带变量表,缺了它:
+// 气泡圆角/边框/底色等所有 var(--el-*) 全部失效(方形气泡、无边框)。
+import 'element-plus/theme-chalk/el-var.css';
+// Element Plus 暗色变量表:html.dark 下重定义 --el-* 变量,
+// Bubble 等纯变量组件与 el-button/el-avatar 自动跟随暗色主题
+import 'element-plus/theme-chalk/dark/css-vars.css';
+
 defineOptions({ name: 'AiAssistant' });
 
 // ==================== 左侧:会话列表(对接后端会话接口) ====================
 
 const conversations = ref<ChatConversation[]>([]);
 // Conversations 组件的 active 为 string | number,这里保持一致避免 v-model 类型冲突
-const activeConversation = ref<string | number | undefined>(undefined);
+const activeConversation = ref<number | string | undefined>(undefined);
 
 /** Conversations 组件要 {id, label} 形状,由业务数据映射而来 */
 const conversationItems = computed(() =>
@@ -166,7 +264,7 @@ const messagesBySession = new Map<string, MessageList>();
 const messages = ref<MessageList>([createWelcomeMessage()]);
 
 /** 当前正在流式输出的会话 id(null = 无) */
-const streamingSessionId = ref<string | null>(null);
+const streamingSessionId = ref<null | string>(null);
 
 /** 当前视图是否处于流式: 发送按钮的 loading 态 */
 const senderLoading = computed(
@@ -396,102 +494,6 @@ onBeforeUnmount(() => {
   streamingSessionId.value = null;
 });
 </script>
-
-<template>
-  <!-- 高度按 Vben 布局(头部 + 标签栏 + 内边距)预留,可按实际主题微调;
-       bg-muted/50:浅色下给白卡片垫出灰色底衬,否则白上叠白全靠细边框区分 -->
-  <div
-    class="bg-muted/50 ai-assistant-page flex h-[calc(100vh-120px)] min-h-[480px] w-full gap-3 rounded-xl p-2"
-  >
-    <!-- 左侧:会话列表 -->
-    <aside
-      class="bg-card border-border flex w-56 shrink-0 flex-col gap-2 rounded-xl border p-2"
-    >
-      <button
-        class="border-border text-foreground hover:bg-accent w-full rounded-md border px-2 py-1.5 text-sm transition select-none hover:cursor-pointer"
-        type="button"
-        @click="handleNewConversation"
-      >
-        + 新建会话
-      </button>
-      <div class="min-h-0 flex-1 overflow-auto">
-        <!-- 组件把白底/280px 宽度/内边距以内联样式写在列表上,
-             必须通过 style prop 覆盖(合并规则:传入值优先于内置默认值) -->
-        <Conversations
-          v-model:active="activeConversation"
-          :items="conversationItems"
-          :style="{
-            backgroundColor: 'transparent',
-            height: 'auto',
-            padding: '0',
-            width: '100%',
-          }"
-          row-key="id"
-          @change="handleConversationChange"
-        >
-          <template #label="{ item }">
-            <div class="flex min-w-0 flex-1 items-center gap-2">
-              <span
-                class="min-w-0 flex-1 truncate"
-                :title="String(item.label ?? '')"
-              >
-                {{ item.label }}
-              </span>
-              <button
-                :aria-label="`删除会话：${item.label ?? ''}`"
-                :title="`删除会话：${item.label ?? ''}`"
-                class="text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-md transition hover:cursor-pointer hover:bg-[var(--el-color-danger-light-9)] hover:text-[var(--el-color-danger)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--el-color-danger)]"
-                type="button"
-                @click.stop="handleDeleteConversation(String(item.id ?? ''))"
-              >
-                <IconifyIcon
-                  aria-hidden="true"
-                  class="size-4"
-                  icon="lucide:trash-2"
-                />
-              </button>
-            </div>
-          </template>
-        </Conversations>
-      </div>
-    </aside>
-
-    <!-- 右侧:聊天区 -->
-    <main
-      class="bg-card border-border flex min-w-0 flex-1 flex-col gap-2 rounded-xl border p-3"
-    >
-      <div class="min-h-0 flex-1">
-        <BubbleList :list="messages" class="h-full" max-height="100%">
-          <!-- AI 过程、Markdown 与工具入口统一渲染；用户气泡保持纯文本 -->
-          <template #content="{ item }">
-            <AssistantMessageContent
-              v-if="item.role === 'ai'"
-              v-model:process-expanded="item.processExpanded"
-              :message="item"
-            />
-            <span v-else class="whitespace-pre-wrap">{{ item.content }}</span>
-          </template>
-        </BubbleList>
-      </div>
-      <div
-        v-if="streamStatus && streamingSessionId === sessionId"
-        class="text-muted-foreground px-1 text-xs"
-      >
-        {{ streamStatus }}
-      </div>
-      <div class="shrink-0">
-        <XSender
-          ref="senderRef"
-          :loading="senderLoading"
-          clearable
-          placeholder="请输入你的问题…"
-          @cancel="handleCancel"
-          @submit="handleSubmit"
-        />
-      </div>
-    </main>
-  </div>
-</template>
 
 <!--
   第三方组件(elx)主题适配,非 scoped:

@@ -1,3 +1,7 @@
+<template>
+  <div />
+</template>
+
 <script setup lang="ts">
 import { useVbenModal } from '../../use-modal';
 
@@ -10,7 +14,3 @@ const [, modalApi] = useVbenModal<TypedModalData | null>();
 
 defineExpose({ modalApi });
 </script>
-
-<template>
-  <div />
-</template>

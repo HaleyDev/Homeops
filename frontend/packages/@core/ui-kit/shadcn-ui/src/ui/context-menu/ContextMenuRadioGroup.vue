@@ -1,3 +1,12 @@
+<template>
+  <ContextMenuRadioGroup
+    data-slot="context-menu-radio-group"
+    v-bind="forwarded"
+  >
+    <slot></slot>
+  </ContextMenuRadioGroup>
+</template>
+
 <script setup lang="ts">
 import type {
   ContextMenuRadioGroupEmits,
@@ -11,12 +20,3 @@ const emits = defineEmits<ContextMenuRadioGroupEmits>();
 
 const forwarded = useForwardPropsEmits(props, emits);
 </script>
-
-<template>
-  <ContextMenuRadioGroup
-    data-slot="context-menu-radio-group"
-    v-bind="forwarded"
-  >
-    <slot></slot>
-  </ContextMenuRadioGroup>
-</template>
