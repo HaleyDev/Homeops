@@ -41,6 +41,7 @@ class KnowledgeDocumentSerializer(serializers.ModelSerializer):
             "size_bytes",
             "status",
             "error_message",
+            "processed_at",
             "created_at",
         )
         read_only_fields = fields

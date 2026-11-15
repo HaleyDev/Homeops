@@ -142,24 +142,146 @@ class KnowledgeDocumentApiTests(TestCase):
         self.assertEqual(KnowledgeDocument.objects.count(), 0)
         self.assertEqual(self.stored_files(), [])
 
-    def test_list_pagination_order_and_cross_base_404(self):
+    def test_list_returns_complete_ordered_collection_and_cross_base_404(self):
         first = self.upload(name="first.md", content=b"first").data["data"]
         second = self.upload(name="second.md", content=b"second").data["data"]
         response = self.client.get(self.url, {"page": 1, "page_size": 1})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["data"]["total"], 2)
+        self.assertEqual(set(response.data["data"]), {"items"})
+        self.assertEqual(len(response.data["data"]["items"]), 2)
         self.assertEqual(response.data["data"]["items"][0]["id"], second["id"])
+        self.assertIn("processed_at", response.data["data"]["items"][0])
 
         other_url = f"/api/knowledge-bases/{self.other_base.id}/documents/"
-        self.assertEqual(self.client.get(other_url).data["data"]["total"], 0)
+        self.assertEqual(self.client.get(other_url).data["data"]["items"], [])
         cross_url = f"{other_url}{first['id']}/"
         self.assertEqual(self.client.delete(cross_url).status_code, 404)
         self.assertEqual(self.client.get("/api/knowledge-bases/0/documents/").status_code, 400)
+
+    def test_upload_dispatches_only_after_commit(self):
+        with patch("knowledge.tasks.vectorize_document.apply_async") as dispatch:
+            with self.captureOnCommitCallbacks(execute=True) as callbacks:
+                response = self.upload()
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(callbacks), 1)
+        self.assertEqual(response.data["data"]["status"], "uploaded")
+        dispatch.assert_called_once()
+        self.assertEqual(
+            dispatch.call_args.kwargs["kwargs"],
+            {
+                "document_id": response.data["data"]["id"],
+                "ingestion_version": 1,
+            },
+        )
+        self.assertEqual(dispatch.call_args.kwargs["queue"], "knowledge")
+
+    def test_upload_dispatch_failure_returns_201_with_retryable_failure(self):
+        with (
+            patch(
+                "knowledge.tasks.vectorize_document.apply_async",
+                side_effect=RuntimeError("broker unavailable"),
+            ),
+            patch(
+                "knowledge.services.knowledge_documents.transaction.on_commit",
+                side_effect=lambda callback: callback(),
+            ),
+        ):
+            response = self.upload()
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["data"]["status"], "failed")
+        self.assertEqual(
+            response.data["data"]["error_message"],
+            "向量化任务投递失败，请重试。",
+        )
+
+    def test_retry_increments_version_clears_state_and_dispatches(self):
+        document_id = self.upload().data["data"]["id"]
+        document = KnowledgeDocument.objects.get(pk=document_id)
+        KnowledgeDocument.objects.filter(pk=document_id).update(
+            status=KnowledgeDocument.Status.FAILED,
+            error_message="failed",
+            ingestion_task_id="old-task",
+            processing_started_at=document.created_at,
+            processed_at=document.created_at,
+            embedding_profile_hash="old-profile",
+        )
+        url = f"{self.url}{document_id}/retry/"
+        with patch("knowledge.tasks.vectorize_document.apply_async") as dispatch:
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(url)
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.data["data"]["status"], "uploaded")
+        self.assertEqual(response.data["data"]["error_message"], "")
+        document.refresh_from_db()
+        self.assertEqual(document.ingestion_version, 2)
+        self.assertEqual(document.ingestion_task_id, "")
+        self.assertIsNone(document.processing_started_at)
+        self.assertIsNone(document.processed_at)
+        self.assertEqual(document.embedding_profile_hash, "")
+        self.assertEqual(
+            dispatch.call_args.kwargs["kwargs"],
+            {"document_id": document_id, "ingestion_version": 2},
+        )
+
+    def test_retry_rejects_non_failed_cross_base_and_non_admin(self):
+        document_id = self.upload().data["data"]["id"]
+        url = f"{self.url}{document_id}/retry/"
+        for status_value in ("uploaded", "processing", "ready", "deleting"):
+            KnowledgeDocument.objects.filter(pk=document_id).update(status=status_value)
+            with self.subTest(status=status_value):
+                self.assertEqual(self.client.post(url).status_code, 409)
+        other_url = (
+            f"/api/knowledge-bases/{self.other_base.id}/documents/"
+            f"{document_id}/retry/"
+        )
+        self.assertEqual(self.client.post(other_url).status_code, 404)
+        self.client.force_authenticate(self.user)
+        self.assertEqual(self.client.post(url).status_code, 403)
+        self.client.force_authenticate(None)
+        self.assertEqual(self.client.post(url).status_code, 401)
+
+    def test_retry_dispatch_failure_returns_503_without_second_increment(self):
+        document_id = self.upload().data["data"]["id"]
+        KnowledgeDocument.objects.filter(pk=document_id).update(
+            status=KnowledgeDocument.Status.FAILED,
+            error_message="old error",
+        )
+        with (
+            patch(
+                "knowledge.tasks.vectorize_document.apply_async",
+                side_effect=RuntimeError("broker unavailable"),
+            ),
+            patch(
+                "knowledge.services.knowledge_documents.transaction.on_commit",
+                side_effect=lambda callback: callback(),
+            ),
+        ):
+            response = self.client.post(f"{self.url}{document_id}/retry/")
+        self.assertEqual(response.status_code, 503)
+        document = KnowledgeDocument.objects.get(pk=document_id)
+        self.assertEqual(document.ingestion_version, 2)
+        self.assertEqual(document.status, KnowledgeDocument.Status.FAILED)
+        self.assertEqual(document.error_message, "向量化任务投递失败，请重试。")
 
     def test_delete_success_and_missing_file_retry(self):
         document_id = self.upload().data["data"]["id"]
         document = KnowledgeDocument.objects.get(pk=document_id)
         path = self.root / document.storage_key
+        original_version = document.ingestion_version
+
+        with patch.object(
+            KnowledgeDocument,
+            "delete",
+            side_effect=DatabaseError("stop after invalidation"),
+        ):
+            response = self.client.delete(f"{self.url}{document_id}/")
+        self.assertEqual(response.status_code, 500)
+        document.refresh_from_db()
+        self.assertEqual(document.ingestion_version, original_version + 1)
+        self.assertEqual(document.status, KnowledgeDocument.Status.DELETING)
+        KnowledgeDocument.objects.filter(pk=document_id).update(
+            status=KnowledgeDocument.Status.UPLOADED
+        )
 
         response = self.client.delete(f"{self.url}{document_id}/")
         self.assertEqual(response.status_code, 200)

@@ -1,4 +1,4 @@
-import { flushPromises, mount } from '@vue/test-utils';
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { KnowledgeBase, KnowledgeDocument } from '#/api/knowledge';
@@ -15,6 +15,7 @@ const api = vi.hoisted(() => ({
   getKnowledgeBaseApi: vi.fn(),
   getKnowledgeBasesApi: vi.fn(),
   getKnowledgeDocumentsApi: vi.fn(),
+  retryKnowledgeDocumentApi: vi.fn(),
   updateKnowledgeBaseApi: vi.fn(),
   uploadKnowledgeDocumentApi: vi.fn(),
 }));
@@ -26,6 +27,8 @@ const feedback = vi.hoisted(() => ({
 
 vi.mock('#/api/knowledge', () => api);
 vi.mock('#/adapter/naive', () => feedback);
+
+enableAutoUnmount(afterEach);
 
 const interactionStubs = {
   Alert: {
@@ -45,7 +48,8 @@ const interactionStubs = {
     name: 'NButton',
     props: { disabled: Boolean, loading: Boolean },
     emits: ['click'],
-    template: '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
+    template:
+      '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
   },
   DataTable: {
     name: 'NDataTable',
@@ -104,8 +108,9 @@ function knowledgeDocument(
     knowledge_base_id: 1,
     mime_type: 'text/markdown',
     original_name: '值班规范.md',
+    processed_at: null,
     size_bytes: 1024,
-    status: 'uploaded',
+    status: 'ready',
     ...overrides,
   };
 }
@@ -118,18 +123,20 @@ beforeEach(() => {
     page_size: 20,
     total: 1,
   });
-  api.getKnowledgeBaseApi.mockResolvedValue(knowledgeBase({ document_count: 1 }));
+  api.getKnowledgeBaseApi.mockResolvedValue(
+    knowledgeBase({ document_count: 1 }),
+  );
   api.getKnowledgeDocumentsApi.mockResolvedValue({
     items: [knowledgeDocument()],
-    page: 1,
-    page_size: 20,
-    total: 1,
   });
   api.createKnowledgeBaseApi.mockImplementation((value) =>
     Promise.resolve(knowledgeBase({ id: 2, ...value })),
   );
   api.updateKnowledgeBaseApi.mockImplementation((id, value) =>
     Promise.resolve(knowledgeBase({ id, ...value })),
+  );
+  api.retryKnowledgeDocumentApi.mockResolvedValue(
+    knowledgeDocument({ status: 'uploaded' }),
   );
   api.uploadKnowledgeDocumentApi.mockResolvedValue(knowledgeDocument());
 });
@@ -208,10 +215,12 @@ describe('知识库管理', () => {
     });
     vi.useRealTimers();
 
-    wrapper.findComponent({ name: 'KnowledgeBaseFormModal' }).vm.$emit('submit', {
-      description: '新说明',
-      name: '新知识库',
-    });
+    wrapper
+      .findComponent({ name: 'KnowledgeBaseFormModal' })
+      .vm.$emit('submit', {
+        description: '新说明',
+        name: '新知识库',
+      });
     await flushPromises();
     expect(api.createKnowledgeBaseApi).toHaveBeenCalledWith({
       description: '新说明',
@@ -222,10 +231,12 @@ describe('知识库管理', () => {
       .findAllComponents({ name: 'NButton' })
       .find((button) => button.text() === '编辑');
     await editButton?.trigger('click');
-    wrapper.findComponent({ name: 'KnowledgeBaseFormModal' }).vm.$emit('submit', {
-      description: '更新说明',
-      name: '更新名称',
-    });
+    wrapper
+      .findComponent({ name: 'KnowledgeBaseFormModal' })
+      .vm.$emit('submit', {
+        description: '更新说明',
+        name: '更新名称',
+      });
     await flushPromises();
     expect(api.updateKnowledgeBaseApi).toHaveBeenCalledWith(1, {
       description: '更新说明',
@@ -364,12 +375,16 @@ describe('知识库文件面板', () => {
     const columns = table.props('columns') as Array<{
       key: string;
       render?: (row: KnowledgeDocument) => {
-        props: { onClick: () => void };
+        children: unknown[];
       };
     }>;
-    columns.find((column) => column.key === 'actions')?.render?.(
-      knowledgeDocument(),
-    ).props.onClick();
+    const actions = columns
+      .find((column) => column.key === 'actions')
+      ?.render?.(knowledgeDocument());
+    const deleteButton = actions?.children[1] as {
+      props: { onClick: () => void };
+    };
+    deleteButton.props.onClick();
     const options = feedback.dialog.warning.mock.calls[0]?.[0] as {
       onPositiveClick: () => Promise<void>;
     };

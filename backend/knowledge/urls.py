@@ -5,6 +5,7 @@ from .views import (
     KnowledgeBaseViewSet,
     KnowledgeDocumentDetailView,
     KnowledgeDocumentListView,
+    KnowledgeDocumentRetryView,
 )
 
 router = DefaultRouter()
@@ -20,6 +21,14 @@ urlpatterns = [
         "knowledge-bases/<int:knowledge_base_id>/documents/<int:document_id>/",
         KnowledgeDocumentDetailView.as_view(),
         name="knowledge-document-detail",
+    ),
+    path(
+        (
+            "knowledge-bases/<int:knowledge_base_id>/documents/"
+            "<int:document_id>/retry/"
+        ),
+        KnowledgeDocumentRetryView.as_view(),
+        name="knowledge-document-retry",
     ),
     path("", include(router.urls)),
 ]

@@ -218,6 +218,17 @@ CELERY_TIME_ZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_RESULT_EXPIRES = timedelta(days=1)
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_ROUTES = {
+    'knowledge.document.vectorize': {'queue': 'knowledge'},
+    'knowledge.document.recover_stale': {'queue': 'knowledge'},
+}
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_BEAT_SCHEDULE = {
+    'knowledge-document-recover-stale': {
+        'task': 'knowledge.document.recover_stale',
+        'schedule': 60.0,
+    },
+}
 
 
 # 知识库原始文件：大文件由 Django 写入临时文件，业务层再流式校验和落盘。
@@ -228,6 +239,34 @@ KNOWLEDGE_MAX_FILE_SIZE = int(
     os.environ.get('KNOWLEDGE_MAX_FILE_SIZE', 20 * 1024 * 1024)
 )
 FILE_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024
+KNOWLEDGE_EMBEDDING_DIMENSIONS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_DIMENSIONS', 2048)
+)
+if KNOWLEDGE_EMBEDDING_DIMENSIONS != 2048:
+    raise ValueError('KNOWLEDGE_EMBEDDING_DIMENSIONS must remain 2048.')
+KNOWLEDGE_CHUNK_SIZE = int(os.environ.get('KNOWLEDGE_CHUNK_SIZE', 800))
+KNOWLEDGE_CHUNK_OVERLAP = int(os.environ.get('KNOWLEDGE_CHUNK_OVERLAP', 100))
+KNOWLEDGE_EMBEDDING_BATCH_SIZE = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_BATCH_SIZE', 10)
+)
+KNOWLEDGE_MAX_CHUNKS_PER_DOCUMENT = int(
+    os.environ.get('KNOWLEDGE_MAX_CHUNKS_PER_DOCUMENT', 5000)
+)
+KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS', 60)
+)
+KNOWLEDGE_EMBEDDING_MAX_ATTEMPTS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_MAX_ATTEMPTS', 3)
+)
+KNOWLEDGE_EMBEDDING_MAX_RESPONSE_BYTES = 32 * 1024 * 1024
+KNOWLEDGE_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('KNOWLEDGE_TASK_SOFT_TIME_LIMIT', 1800)
+)
+KNOWLEDGE_TASK_TIME_LIMIT = int(os.environ.get('KNOWLEDGE_TASK_TIME_LIMIT', 1860))
+KNOWLEDGE_PROCESSING_STALE_SECONDS = int(
+    os.environ.get('KNOWLEDGE_PROCESSING_STALE_SECONDS', 2160)
+)
+KNOWLEDGE_UPLOADED_STALE_SECONDS = 300
 
 
 # Static files (CSS, JavaScript, Images)

@@ -1,4 +1,5 @@
-from rest_framework.exceptions import ValidationError
+from django.db.models import ProtectedError
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
@@ -8,6 +9,19 @@ from .models import LLMModel, LLMProvider, ModelType
 from .permissions import IsSuperuser
 from .serializers import LLMModelSerializer, LLMProviderSerializer, SelectionSerializer
 from .services import SelectionError, clear_selection, select_model
+
+
+class ModelInUse(APIException):
+    status_code = 409
+    default_detail = "该模型配置已被知识库向量使用，不能删除。"
+    default_code = "model_in_use"
+
+
+def delete_model_configuration(instance):
+    try:
+        instance.delete()
+    except ProtectedError as exc:
+        raise ModelInUse() from exc
 
 
 class LLMProviderViewSet(ApiResponseMixin, ModelViewSet):
@@ -28,7 +42,7 @@ class LLMProviderViewSet(ApiResponseMixin, ModelViewSet):
                 "This provider contains the currently selected model. "
                 "Change the selection first."
             )
-        instance.delete()
+        delete_model_configuration(instance)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -48,7 +62,7 @@ class LLMModelViewSet(ApiResponseMixin, ModelViewSet):
                 "The currently selected model cannot be deleted. "
                 "Change the selection first."
             )
-        instance.delete()
+        delete_model_configuration(instance)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -35,18 +35,24 @@ class SessionServiceTests(SimpleTestCase):
 class PerTurnRunnerTests(SimpleTestCase):
     def setUp(self):
         self.first_config = EffectiveModelConfig(
+            model_id=1,
+            provider_id=1,
             model_key="model-a",
             model_type="text",
             protocol="openai_compatible",
             base_url="https://a.example.com/v1",
+            dimensions=None,
             api_key="secret-a",
             parameters={"temperature": 0.1},
         )
         self.second_config = EffectiveModelConfig(
+            model_id=2,
+            provider_id=2,
             model_key="model-b",
             model_type="text",
             protocol="openai_compatible",
             base_url="https://b.example.com/v1",
+            dimensions=None,
             api_key="secret-b",
             parameters={"temperature": 0.9},
         )

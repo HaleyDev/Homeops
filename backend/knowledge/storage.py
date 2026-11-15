@@ -109,6 +109,13 @@ class KnowledgeFileStorage:
             content_hash=digest.hexdigest(),
         )
 
+    def read_text(self, storage_key):
+        path = self._path_for_key(storage_key)
+        try:
+            return path.read_text(encoding="utf-8", errors="strict")
+        except (OSError, UnicodeError) as exc:
+            raise StorageError("原始文件不存在或无法读取。") from exc
+
     def delete(self, storage_key):
         path = self._path_for_key(storage_key)
         try:

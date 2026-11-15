@@ -44,7 +44,7 @@ services:
     build:
       context: ./backend
       dockerfile: ../docker/backend/Dockerfile
-    command: ["celery", "-A", "backend", "worker", "--loglevel=INFO", "--concurrency=${CELERY_WORKER_CONCURRENCY:-5}"]
+    command: ["celery", "-A", "backend", "worker", "--beat", "--schedule=/tmp/celerybeat-schedule", "--loglevel=INFO", "--queues=celery,knowledge", "--concurrency=${CELERY_WORKER_CONCURRENCY:-5}", "--prefetch-multiplier=1"]
     env_file:
       - .env
     environment:

@@ -44,15 +44,13 @@ export interface KnowledgeDocument {
   knowledge_base_id: number;
   mime_type: 'text/markdown' | 'text/plain';
   original_name: string;
+  processed_at: null | string;
   size_bytes: number;
   status: KnowledgeDocumentStatus;
 }
 
 export interface KnowledgeDocumentListResult {
   items: KnowledgeDocument[];
-  page: number;
-  page_size: number;
-  total: number;
 }
 
 export function getKnowledgeBasesApi(params: KnowledgeBaseListParams = {}) {
@@ -83,21 +81,29 @@ export function deleteKnowledgeBaseApi(id: number) {
   return requestClient.delete(`/knowledge-bases/${id}/`);
 }
 
-export function getKnowledgeDocumentsApi(
-  knowledgeBaseId: number,
-  params: Pick<KnowledgeBaseListParams, 'page' | 'page_size'> = {},
-) {
+export function getKnowledgeDocumentsApi(knowledgeBaseId: number) {
   return requestClient.get<KnowledgeDocumentListResult>(
     `/knowledge-bases/${knowledgeBaseId}/documents/`,
-    { params },
   );
 }
 
-export function uploadKnowledgeDocumentApi(knowledgeBaseId: number, file: File) {
+export function uploadKnowledgeDocumentApi(
+  knowledgeBaseId: number,
+  file: File,
+) {
   return requestClient.upload<KnowledgeDocument>(
     `/knowledge-bases/${knowledgeBaseId}/documents/`,
     { file },
     { timeout: 60_000 },
+  );
+}
+
+export function retryKnowledgeDocumentApi(
+  knowledgeBaseId: number,
+  documentId: number,
+) {
+  return requestClient.post<KnowledgeDocument>(
+    `/knowledge-bases/${knowledgeBaseId}/documents/${documentId}/retry/`,
   );
 }
 

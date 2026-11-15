@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 
 from .crypto import APIKeyEncryptionError, decrypt_api_key
-from .models import LLMModel, ModelType
+from .models import EMBEDDING_DIMENSIONS, LLMModel, ModelType
 from .validators import validate_base_url, validate_non_sensitive_config
 
 
@@ -19,10 +19,13 @@ class SelectionError(Exception):
 
 @dataclass(frozen=True)
 class EffectiveModelConfig:
+    model_id: int
+    provider_id: int
     model_key: str
     model_type: str
     protocol: str
     base_url: str
+    dimensions: int | None
     api_key: str = field(repr=False)
     parameters: dict = field(default_factory=dict)
     extra_config: dict = field(default_factory=dict)
@@ -72,6 +75,14 @@ def get_effective_model_config(
             f"The current {label} configuration is unavailable. Contact an administrator."
         )
 
+    if (
+        category == ModelType.EMBEDDING
+        and model.dimensions != EMBEDDING_DIMENSIONS
+    ) or (category == ModelType.TEXT and model.dimensions is not None):
+        raise ModelConfigurationError(
+            f"The current {label} configuration is unavailable. Contact an administrator."
+        )
+
     try:
         validate_base_url(provider.base_url)
         validate_non_sensitive_config(provider.extra_config)
@@ -87,10 +98,13 @@ def get_effective_model_config(
         )
 
     return EffectiveModelConfig(
+        model_id=model.id,
+        provider_id=provider.id,
         model_key=model.model_key,
         model_type=model.model_type,
         protocol=provider.protocol,
         base_url=provider.base_url,
+        dimensions=model.dimensions,
         api_key=api_key,
         parameters=deepcopy(model.parameters),
         extra_config=deepcopy(provider.extra_config),
@@ -114,6 +128,11 @@ def select_model(category: ModelType | str, model_id: int) -> LLMModel:
                 raise SelectionError(
                     "The selected model type does not match the selection category."
                 )
+            if (
+                model_type == ModelType.EMBEDDING
+                and model.dimensions != EMBEDDING_DIMENSIONS
+            ) or (model_type == ModelType.TEXT and model.dimensions is not None):
+                raise SelectionError("The model dimensions configuration is invalid.")
             if not model.is_active or not model.provider.is_active:
                 raise SelectionError("An inactive model or provider cannot be selected.")
             LLMModel.objects.filter(selected_for=model_type.value).exclude(

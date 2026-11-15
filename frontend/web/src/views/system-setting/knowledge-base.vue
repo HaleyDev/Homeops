@@ -2,11 +2,14 @@
   <div class="p-5">
     <div class="mb-6">
       <h1 class="text-2xl font-semibold">知识库设置</h1>
-      <p class="text-muted-foreground mt-2 text-sm">管理知识库和原始文件</p>
+      <p class="text-muted-foreground mt-2 text-sm">
+        管理知识库、原始文件和向量化状态
+      </p>
     </div>
 
     <NAlert type="info" class="mb-5" :bordered="false">
-      当前仅管理知识库原文，切片和向量化将在后续阶段接入。
+      文件上传后将自动分块并写入 2048
+      维向量；处理失败的文件可查看原因并手动重试。
     </NAlert>
 
     <div class="grid items-start gap-5 lg:grid-cols-[340px_minmax(0,1fr)]">
@@ -105,6 +108,7 @@
       </NCard>
 
       <KnowledgeDocumentPanel
+        :active="pageActive"
         :knowledge-base="selectedKnowledgeBase"
         @changed="refreshSelectedKnowledgeBase"
         @uploading-change="documentUploading = $event"
@@ -123,7 +127,15 @@
 <script setup lang="ts">
 import type { KnowledgeBase, CreateKnowledgeBaseParams } from '#/api/knowledge';
 
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import {
+  computed,
+  onActivated,
+  onBeforeUnmount,
+  onDeactivated,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
 
 import {
   NAlert,
@@ -154,6 +166,7 @@ const keyword = ref('');
 const loading = ref(false);
 const saving = ref(false);
 const documentUploading = ref(false);
+const pageActive = ref(true);
 const page = ref(1);
 const pageSize = 20;
 const total = ref(0);
@@ -164,8 +177,9 @@ let loadSequence = 0;
 
 const selectedKnowledgeBase = computed(
   () =>
-    knowledgeBases.value.find((knowledgeBase) => knowledgeBase.id === selectedId.value) ??
-    null,
+    knowledgeBases.value.find(
+      (knowledgeBase) => knowledgeBase.id === selectedId.value,
+    ) ?? null,
 );
 
 watch(keyword, () => {
@@ -177,6 +191,12 @@ watch(keyword, () => {
 });
 
 onMounted(() => loadKnowledgeBases());
+onActivated(() => {
+  pageActive.value = true;
+});
+onDeactivated(() => {
+  pageActive.value = false;
+});
 onBeforeUnmount(() => clearTimeout(searchTimer));
 
 async function loadKnowledgeBases(preferredId?: number) {

@@ -82,6 +82,14 @@ def upload_document(knowledge_base_id, uploaded_files, user, storage=None):
                     content_hash=stored_file.content_hash,
                     created_by=user,
                 )
+
+                def dispatch_after_commit():
+                    from knowledge.tasks import dispatch_vectorization
+
+                    dispatch_vectorization(document.id, document.ingestion_version)
+                    document.refresh_from_db()
+
+                transaction.on_commit(dispatch_after_commit)
         except KnowledgeBase.DoesNotExist as exc:
             raise NotFound("知识库不存在。") from exc
         except IntegrityError as exc:
@@ -107,9 +115,17 @@ def delete_document(knowledge_base_id, document_id, storage=None):
                 pk=document_id,
                 knowledge_base_id=knowledge_base_id,
             )
+            document.ingestion_version += 1
             document.status = KnowledgeDocument.Status.DELETING
             document.error_message = ""
-            document.save(update_fields=("status", "error_message", "updated_at"))
+            document.save(
+                update_fields=(
+                    "ingestion_version",
+                    "status",
+                    "error_message",
+                    "updated_at",
+                )
+            )
             storage_key = document.storage_key
     except KnowledgeDocument.DoesNotExist as exc:
         raise NotFound("文件不存在。") from exc
@@ -150,6 +166,50 @@ def delete_document(knowledge_base_id, document_id, storage=None):
         knowledge_base_id,
         document_id,
     )
+
+
+def retry_document(knowledge_base_id, document_id):
+    dispatch_result = {"success": True}
+    try:
+        with transaction.atomic():
+            document = KnowledgeDocument.objects.select_for_update().get(
+                pk=document_id,
+                knowledge_base_id=knowledge_base_id,
+            )
+            if document.status != KnowledgeDocument.Status.FAILED:
+                raise Conflict("只有向量化失败的文件可以重试。")
+            document.ingestion_version += 1
+            document.status = KnowledgeDocument.Status.UPLOADED
+            document.error_message = ""
+            document.ingestion_task_id = ""
+            document.processing_started_at = None
+            document.processed_at = None
+            document.embedding_profile_hash = ""
+            document.save(
+                update_fields=(
+                    "ingestion_version",
+                    "status",
+                    "error_message",
+                    "ingestion_task_id",
+                    "processing_started_at",
+                    "processed_at",
+                    "embedding_profile_hash",
+                    "updated_at",
+                )
+            )
+
+            def dispatch_after_commit():
+                from knowledge.tasks import dispatch_vectorization
+
+                dispatch_result["success"] = dispatch_vectorization(
+                    document.id, document.ingestion_version
+                )
+                document.refresh_from_db()
+
+            transaction.on_commit(dispatch_after_commit)
+    except KnowledgeDocument.DoesNotExist as exc:
+        raise NotFound("文件不存在。") from exc
+    return document, dispatch_result["success"]
 
 
 def _cleanup_unregistered_file(storage, stored_file, knowledge_base_id):

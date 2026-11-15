@@ -1,7 +1,7 @@
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -17,7 +17,17 @@ from .services.knowledge_bases import (
     delete_knowledge_base,
     update_knowledge_base,
 )
-from .services.knowledge_documents import delete_document, upload_document
+from .services.knowledge_documents import (
+    delete_document,
+    retry_document,
+    upload_document,
+)
+
+
+class TaskDispatchFailed(APIException):
+    status_code = 503
+    default_detail = "向量化任务投递失败，请重试。"
+    default_code = "knowledge_dispatch_failed"
 
 
 def _validate_path_ids(kwargs):
@@ -77,10 +87,8 @@ class KnowledgeDocumentListView(ApiResponseMixin, APIView):
         documents = KnowledgeDocument.objects.filter(
             knowledge_base_id=knowledge_base_id
         )
-        paginator = KnowledgePagination()
-        page = paginator.paginate_queryset(documents, request, view=self)
-        serializer = KnowledgeDocumentSerializer(page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+        serializer = KnowledgeDocumentSerializer(documents, many=True)
+        return ok({"items": serializer.data})
 
     def post(self, request, knowledge_base_id):
         document = upload_document(
@@ -88,10 +96,33 @@ class KnowledgeDocumentListView(ApiResponseMixin, APIView):
             request.FILES,
             request.user,
         )
+        message = (
+            "文件已上传，但向量化任务投递失败，请重试。"
+            if document.status == KnowledgeDocument.Status.FAILED
+            else "文件已上传，等待向量化。"
+        )
         return ok(
             KnowledgeDocumentSerializer(document).data,
-            message="文件已上传，尚未向量化。",
+            message=message,
             status_code=status.HTTP_201_CREATED,
+        )
+
+
+class KnowledgeDocumentRetryView(ApiResponseMixin, APIView):
+    permission_classes = [IsSuperuser]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        _validate_path_ids(kwargs)
+
+    def post(self, request, knowledge_base_id, document_id):
+        document, dispatched = retry_document(knowledge_base_id, document_id)
+        if not dispatched:
+            raise TaskDispatchFailed()
+        return ok(
+            KnowledgeDocumentSerializer(document).data,
+            message="已重新投递向量化任务。",
+            status_code=status.HTTP_202_ACCEPTED,
         )
 
 
