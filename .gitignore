@@ -1,6 +1,7 @@
 # 数据库运行数据（初始化脚本需要提交）
 docker/mysql/*
 docker/postgres/data/*
+docker/redis/data/*
 
 /.env
 

@@ -7,6 +7,7 @@
 | 层次 | 技术 |
 | --- | --- |
 | 后端 | Django 6.1 + DRF + SimpleJWT，PostgreSQL 17 + pgvector，uWSGI |
+| 异步任务 | Celery + Redis（Broker 与任务结果后端） |
 | 前端 | Vue 3 + Vite + [Vben Admin](https://vben.pro)（Naive UI），Nginx |
 | 认证 | 账号密码 + GitLab OIDC（mozilla-django-oidc） |
 | 日志 | structlog + django-structlog，DEBUG 下彩色文本，生产 JSON |
@@ -17,7 +18,7 @@
 ```
 backend/    Django 项目（accounts 应用：认证与用户信息接口）
 frontend/   Vben Admin 单页应用（web/ 为业务代码）
-docker/     各服务 Dockerfile 与数据挂载目录（postgres、elasticsearch）
+docker/     各服务 Dockerfile 与数据挂载目录（postgres、redis、elasticsearch）
 docs/       OIDC 登录、前后端改动等设计文档
 ```
 
@@ -42,6 +43,24 @@ cd frontend && pnpm install && pnpm dev
 ```
 
 Vite 已配置 `/api` 代理到 `localhost:8000`。
+
+## Celery
+
+Compose 默认启动 Redis 和 `celery-worker`。Redis 的 0 号库用作 Broker，1 号库保存任务结果；数据保存在 `docker/redis/data`，且仅在 Compose 内网开放。
+
+在各 Django 应用的 `tasks.py` 中使用 `@shared_task` 声明任务，Celery 会自动发现。可通过环境变量 `CELERY_BROKER_URL` 和 `CELERY_RESULT_BACKEND` 覆盖默认连接。
+
+Worker 默认最多同时执行 5 个任务，可在 `.env` 中设置 `CELERY_WORKER_CONCURRENCY=6` 等值调整并发数。
+
+完整说明见 [Celery 使用指南](docs/celery-usage-guide.md)。
+
+```bash
+# 查看 Worker 日志
+docker compose logs -f celery-worker
+
+# 检查 Worker 与 Broker 的连通性
+docker compose exec backend celery -A backend inspect ping
+```
 
 ## CI/CD
 
