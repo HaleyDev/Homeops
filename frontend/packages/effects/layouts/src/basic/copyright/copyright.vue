@@ -1,25 +1,3 @@
-<script lang="ts" setup>
-interface Props {
-  companyName?: string;
-  companySiteLink?: string;
-  date?: string;
-  icp?: string;
-  icpLink?: string;
-}
-
-defineOptions({
-  name: 'Copyright',
-});
-
-withDefaults(defineProps<Props>(), {
-  companyName: 'Vben Admin',
-  companySiteLink: '',
-  date: '2024',
-  icp: '',
-  icpLink: '',
-});
-</script>
-
 <template>
   <div class="text-md flex-center">
     <!-- ICP Link -->
@@ -47,3 +25,25 @@ withDefaults(defineProps<Props>(), {
     </a>
   </div>
 </template>
+
+<script lang="ts" setup>
+interface Props {
+  companyName?: string;
+  companySiteLink?: string;
+  date?: string;
+  icp?: string;
+  icpLink?: string;
+}
+
+defineOptions({
+  name: 'Copyright',
+});
+
+withDefaults(defineProps<Props>(), {
+  companyName: 'Vben Admin',
+  companySiteLink: '',
+  date: '2024',
+  icp: '',
+  icpLink: '',
+});
+</script>

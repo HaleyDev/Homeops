@@ -1,3 +1,11 @@
+<template>
+  <div>
+    <Form />
+    <VbenButton type="submit" class="mt-4" @click="handleSubmit">
+      {{ $t('profile.updatePassword') }}
+    </VbenButton>
+  </div>
+</template>
 <script setup lang="ts">
 import type { Recordable } from '@vben/types';
 
@@ -49,11 +57,3 @@ defineExpose({
   getFormApi: () => formApi,
 });
 </script>
-<template>
-  <div>
-    <Form />
-    <VbenButton type="submit" class="mt-4" @click="handleSubmit">
-      {{ $t('profile.updatePassword') }}
-    </VbenButton>
-  </div>
-</template>

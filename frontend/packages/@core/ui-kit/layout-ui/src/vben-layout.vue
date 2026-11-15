@@ -1,3 +1,155 @@
+<template>
+  <div class="relative flex h-full min-h-0 w-full overflow-hidden">
+    <LayoutSidebar
+      v-if="sidebarEnableState"
+      v-model:draggable="sidebarDraggable"
+      v-model:collapse="sidebarCollapse"
+      v-model:expand-on-hover="sidebarExpandOnHover"
+      v-model:expand-on-hovering="sidebarExpandOnHovering"
+      v-model:extra-collapse="sidebarExtraCollapse"
+      v-model:extra-visible="sidebarExtraVisible"
+      :show-collapse-button="sidebarCollapsedButton"
+      :show-fixed-button="sidebarFixedButton"
+      :collapse-width="getSideCollapseWidth"
+      :dom-visible="!isMobile"
+      :extra-width="sidebarExtraWidth"
+      :fixed-extra="sidebarExpandOnHover"
+      :header-height="sidebarHeaderHeight"
+      :extra-title-height="
+        isSidebarMixedNav || isHeaderMixedNav ? sidebarExtraTitleHeight : 0
+      "
+      :is-sidebar-mixed="isSidebarMixedNav || isHeaderMixedNav"
+      :margin-top="sidebarMarginTop"
+      :mixed-width="sidebarMixedWidth"
+      :show="showSidebar"
+      :theme="sidebarTheme"
+      :theme-sub="sidebarThemeSub"
+      :width="getSidebarWidth"
+      :z-index="sidebarZIndex"
+      @leave="() => emit('sideMouseLeave')"
+      @update:width="(val) => emit('update:sidebarWidth', val)"
+    >
+      <template v-if="isSideMode && !isMixedNav && sidebarLogoVisible" #logo>
+        <slot name="logo"></slot>
+      </template>
+
+      <template v-if="isSidebarMixedNav || isHeaderMixedNav">
+        <slot name="mixed-menu"></slot>
+      </template>
+      <template v-else>
+        <slot name="menu"></slot>
+      </template>
+
+      <template #extra>
+        <slot name="side-extra"></slot>
+      </template>
+      <template #extra-title>
+        <slot name="side-extra-title"></slot>
+      </template>
+    </LayoutSidebar>
+
+    <div
+      ref="mainRef"
+      class="relative flex min-h-0 flex-1 flex-col overflow-hidden transition-all duration-300 ease-in"
+    >
+      <Teleport defer :disabled="headerFixed" :to="layoutStaticHeaderTarget">
+        <div
+          :class="[
+            {
+              'shadow-[0_16px_24px_hsl(var(--background))]': headerHasShadow,
+            },
+            SCROLL_FIXED_CLASS,
+          ]"
+          :style="headerWrapperStyle"
+          class="shrink-0 overflow-hidden transition-[transform,left,width] duration-200"
+        >
+          <LayoutHeader
+            v-if="headerVisible"
+            :full-width="!isSideMode"
+            :height="headerHeight"
+            :is-mobile="isMobile"
+            :show="!isFullContent && !headerHidden"
+            :sidebar-width="sidebarWidth"
+            :theme="headerTheme"
+            :width="mainStyle.width"
+            :z-index="headerZIndex"
+            :logo-visible="sidebarLogoVisible"
+          >
+            <template v-if="showHeaderLogo" #logo>
+              <slot name="logo"></slot>
+            </template>
+
+            <template #toggle-button>
+              <VbenIconButton
+                v-if="showHeaderToggleButton"
+                class="my-0 mr-1 rounded-md"
+                @click="handleHeaderToggle"
+              >
+                <IconifyIcon v-if="showSidebar" icon="ep:fold" />
+                <IconifyIcon v-else icon="ep:expand" />
+              </VbenIconButton>
+            </template>
+            <slot name="header"></slot>
+          </LayoutHeader>
+
+          <LayoutTabbar
+            v-if="tabbarEnable"
+            :height="tabbarHeight"
+            :style="tabbarStyle"
+          >
+            <slot name="tabbar"></slot>
+          </LayoutTabbar>
+        </div>
+      </Teleport>
+
+      <div
+        :id="idLayoutScroll"
+        ref="contentRef"
+        :style="layoutScrollStyle"
+        class="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto"
+      >
+        <div :id="idLayoutStaticHeader" class="contents"></div>
+
+        <LayoutContent
+          :id="idMainContent"
+          :content-compact="contentCompact"
+          :content-compact-width="contentCompactWidth"
+          :padding="contentPadding"
+          :padding-bottom="contentPaddingBottom"
+          :padding-left="contentPaddingLeft"
+          :padding-right="contentPaddingRight"
+          :padding-top="contentPaddingTop"
+          :style="contentStyle"
+        >
+          <slot name="content"></slot>
+
+          <template #overlay>
+            <slot name="content-overlay"></slot>
+          </template>
+        </LayoutContent>
+
+        <LayoutFooter
+          v-if="footerEnable"
+          :fixed="footerFixed"
+          :height="footerHeight"
+          :show="!isFullContent"
+          :width="footerWidth"
+          :z-index="zIndex"
+        >
+          <slot name="footer"></slot>
+        </LayoutFooter>
+      </div>
+    </div>
+    <slot name="extra"></slot>
+    <div
+      v-if="maskVisible"
+      :style="maskStyle"
+      class="fixed top-0 left-0 size-full bg-overlay transition-[background-color] duration-200"
+      @click="handleClickMask"
+    ></div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -558,155 +710,3 @@ const idLayoutScroll = ELEMENT_ID_LAYOUT_SCROLL;
 const idLayoutStaticHeader = `${ELEMENT_ID_LAYOUT_SCROLL}__static_header`;
 const layoutStaticHeaderTarget = `#${idLayoutStaticHeader}`;
 </script>
-
-<template>
-  <div class="relative flex h-full min-h-0 w-full overflow-hidden">
-    <LayoutSidebar
-      v-if="sidebarEnableState"
-      v-model:draggable="sidebarDraggable"
-      v-model:collapse="sidebarCollapse"
-      v-model:expand-on-hover="sidebarExpandOnHover"
-      v-model:expand-on-hovering="sidebarExpandOnHovering"
-      v-model:extra-collapse="sidebarExtraCollapse"
-      v-model:extra-visible="sidebarExtraVisible"
-      :show-collapse-button="sidebarCollapsedButton"
-      :show-fixed-button="sidebarFixedButton"
-      :collapse-width="getSideCollapseWidth"
-      :dom-visible="!isMobile"
-      :extra-width="sidebarExtraWidth"
-      :fixed-extra="sidebarExpandOnHover"
-      :header-height="sidebarHeaderHeight"
-      :extra-title-height="
-        isSidebarMixedNav || isHeaderMixedNav ? sidebarExtraTitleHeight : 0
-      "
-      :is-sidebar-mixed="isSidebarMixedNav || isHeaderMixedNav"
-      :margin-top="sidebarMarginTop"
-      :mixed-width="sidebarMixedWidth"
-      :show="showSidebar"
-      :theme="sidebarTheme"
-      :theme-sub="sidebarThemeSub"
-      :width="getSidebarWidth"
-      :z-index="sidebarZIndex"
-      @leave="() => emit('sideMouseLeave')"
-      @update:width="(val) => emit('update:sidebarWidth', val)"
-    >
-      <template v-if="isSideMode && !isMixedNav && sidebarLogoVisible" #logo>
-        <slot name="logo"></slot>
-      </template>
-
-      <template v-if="isSidebarMixedNav || isHeaderMixedNav">
-        <slot name="mixed-menu"></slot>
-      </template>
-      <template v-else>
-        <slot name="menu"></slot>
-      </template>
-
-      <template #extra>
-        <slot name="side-extra"></slot>
-      </template>
-      <template #extra-title>
-        <slot name="side-extra-title"></slot>
-      </template>
-    </LayoutSidebar>
-
-    <div
-      ref="mainRef"
-      class="relative flex min-h-0 flex-1 flex-col overflow-hidden transition-all duration-300 ease-in"
-    >
-      <Teleport defer :disabled="headerFixed" :to="layoutStaticHeaderTarget">
-        <div
-          :class="[
-            {
-              'shadow-[0_16px_24px_hsl(var(--background))]': headerHasShadow,
-            },
-            SCROLL_FIXED_CLASS,
-          ]"
-          :style="headerWrapperStyle"
-          class="shrink-0 overflow-hidden transition-[transform,left,width] duration-200"
-        >
-          <LayoutHeader
-            v-if="headerVisible"
-            :full-width="!isSideMode"
-            :height="headerHeight"
-            :is-mobile="isMobile"
-            :show="!isFullContent && !headerHidden"
-            :sidebar-width="sidebarWidth"
-            :theme="headerTheme"
-            :width="mainStyle.width"
-            :z-index="headerZIndex"
-            :logo-visible="sidebarLogoVisible"
-          >
-            <template v-if="showHeaderLogo" #logo>
-              <slot name="logo"></slot>
-            </template>
-
-            <template #toggle-button>
-              <VbenIconButton
-                v-if="showHeaderToggleButton"
-                class="my-0 mr-1 rounded-md"
-                @click="handleHeaderToggle"
-              >
-                <IconifyIcon v-if="showSidebar" icon="ep:fold" />
-                <IconifyIcon v-else icon="ep:expand" />
-              </VbenIconButton>
-            </template>
-            <slot name="header"></slot>
-          </LayoutHeader>
-
-          <LayoutTabbar
-            v-if="tabbarEnable"
-            :height="tabbarHeight"
-            :style="tabbarStyle"
-          >
-            <slot name="tabbar"></slot>
-          </LayoutTabbar>
-        </div>
-      </Teleport>
-
-      <div
-        :id="idLayoutScroll"
-        ref="contentRef"
-        :style="layoutScrollStyle"
-        class="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto"
-      >
-        <div :id="idLayoutStaticHeader" class="contents"></div>
-
-        <LayoutContent
-          :id="idMainContent"
-          :content-compact="contentCompact"
-          :content-compact-width="contentCompactWidth"
-          :padding="contentPadding"
-          :padding-bottom="contentPaddingBottom"
-          :padding-left="contentPaddingLeft"
-          :padding-right="contentPaddingRight"
-          :padding-top="contentPaddingTop"
-          :style="contentStyle"
-        >
-          <slot name="content"></slot>
-
-          <template #overlay>
-            <slot name="content-overlay"></slot>
-          </template>
-        </LayoutContent>
-
-        <LayoutFooter
-          v-if="footerEnable"
-          :fixed="footerFixed"
-          :height="footerHeight"
-          :show="!isFullContent"
-          :width="footerWidth"
-          :z-index="zIndex"
-        >
-          <slot name="footer"></slot>
-        </LayoutFooter>
-      </div>
-    </div>
-    <slot name="extra"></slot>
-    <div
-      v-if="maskVisible"
-      :style="maskStyle"
-      class="fixed top-0 left-0 size-full bg-overlay transition-[background-color] duration-200"
-      @click="handleClickMask"
-    ></div>
-  </div>
-</template>

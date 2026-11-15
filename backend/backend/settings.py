@@ -27,6 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-$n)8so3ujc4u!gfl(w4ss(wwxr08)o-xivkydre+%fhyr_3#2k'
 
+# 系统设置 API Key 加密密钥；生产环境建议通过环境变量覆盖。
+SYSTEM_SETTING_ENCRYPTION_KEY = 'UuylkWqvaWRkGJq54gJdmjsioDb0EaHFGKhp14MsvhM='
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -62,6 +65,8 @@ INSTALLED_APPS = [
     'django_structlog',
     # 本项目应用
     'accounts',
+    'ai_assistant',
+    'system_setting',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -114,6 +119,7 @@ DATABASES = {
         'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'homeops123'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {'charset': 'utf8mb4'},  # 防 4 字节 emoji 落库报错 (LLM 输出常见)
     }
 }
 

@@ -1,3 +1,10 @@
+<template>
+  <component :is="icon as Component" v-if="isComponent" v-bind="$attrs" />
+  <img v-else-if="isRemoteIcon" :src="icon as string" v-bind="$attrs" />
+  <IconifyIcon v-else-if="icon" v-bind="$attrs" :icon="icon as string" />
+  <IconDefault v-else-if="fallback" v-bind="$attrs" />
+</template>
+
 <script setup lang="ts">
 import type { Component } from 'vue';
 
@@ -26,10 +33,3 @@ const isComponent = computed(() => {
   return !isString(icon) && (isObject(icon) || isFunction(icon));
 });
 </script>
-
-<template>
-  <component :is="icon as Component" v-if="isComponent" v-bind="$attrs" />
-  <img v-else-if="isRemoteIcon" :src="icon as string" v-bind="$attrs" />
-  <IconifyIcon v-else-if="icon" v-bind="$attrs" :icon="icon as string" />
-  <IconDefault v-else-if="fallback" v-bind="$attrs" />
-</template>

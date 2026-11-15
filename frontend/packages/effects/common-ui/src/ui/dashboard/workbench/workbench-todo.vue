@@ -1,28 +1,3 @@
-<script setup lang="ts">
-import type { WorkbenchTodoItem } from '../typing';
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  VbenCheckbox,
-} from '@vben-core/shadcn-ui';
-
-interface Props {
-  items?: WorkbenchTodoItem[];
-  title: string;
-}
-
-defineOptions({
-  name: 'WorkbenchTodo',
-});
-
-withDefaults(defineProps<Props>(), {
-  items: () => [],
-});
-</script>
-
 <template>
   <Card>
     <CardHeader>
@@ -61,3 +36,28 @@ withDefaults(defineProps<Props>(), {
     </CardContent>
   </Card>
 </template>
+
+<script setup lang="ts">
+import type { WorkbenchTodoItem } from '../typing';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  VbenCheckbox,
+} from '@vben-core/shadcn-ui';
+
+interface Props {
+  items?: WorkbenchTodoItem[];
+  title: string;
+}
+
+defineOptions({
+  name: 'WorkbenchTodo',
+});
+
+withDefaults(defineProps<Props>(), {
+  items: () => [],
+});
+</script>

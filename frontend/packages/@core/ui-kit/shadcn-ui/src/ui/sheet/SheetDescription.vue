@@ -1,3 +1,13 @@
+<template>
+  <DialogDescription
+    data-slot="sheet-description"
+    :class="cn('text-muted-foreground text-sm', props.class)"
+    v-bind="delegatedProps"
+  >
+    <slot></slot>
+  </DialogDescription>
+</template>
+
 <script setup lang="ts">
 import type { DialogDescriptionProps } from 'reka-ui';
 
@@ -14,13 +24,3 @@ const props = defineProps<
 
 const delegatedProps = reactiveOmit(props, 'class');
 </script>
-
-<template>
-  <DialogDescription
-    data-slot="sheet-description"
-    :class="cn('text-muted-foreground text-sm', props.class)"
-    v-bind="delegatedProps"
-  >
-    <slot></slot>
-  </DialogDescription>
-</template>

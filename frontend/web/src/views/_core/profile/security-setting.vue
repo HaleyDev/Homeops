@@ -1,3 +1,6 @@
+<template>
+  <ProfileSecuritySetting :form-schema="formSchema" />
+</template>
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -38,6 +41,3 @@ const formSchema = computed(() => {
   ];
 });
 </script>
-<template>
-  <ProfileSecuritySetting :form-schema="formSchema" />
-</template>

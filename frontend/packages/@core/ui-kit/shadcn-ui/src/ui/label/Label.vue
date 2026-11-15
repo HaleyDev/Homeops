@@ -1,18 +1,3 @@
-<script setup lang="ts">
-import type { LabelProps } from 'reka-ui';
-
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { reactiveOmit } from '@vueuse/core';
-import { Label } from 'reka-ui';
-
-const props = defineProps<LabelProps & { class?: HTMLAttributes['class'] }>();
-
-const delegatedProps = reactiveOmit(props, 'class');
-</script>
-
 <template>
   <Label
     data-slot="label"
@@ -27,3 +12,18 @@ const delegatedProps = reactiveOmit(props, 'class');
     <slot></slot>
   </Label>
 </template>
+
+<script setup lang="ts">
+import type { LabelProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { reactiveOmit } from '@vueuse/core';
+import { Label } from 'reka-ui';
+
+const props = defineProps<LabelProps & { class?: HTMLAttributes['class'] }>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+</script>

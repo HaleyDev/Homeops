@@ -1,3 +1,47 @@
+<template>
+  <BasicLayout
+    :avatar
+    :text="userStore.userInfo?.realName"
+    @clear-preferences-and-logout="handleLogout"
+    @logout="handleLogout"
+  >
+    <template #user-dropdown>
+      <UserDropdown
+        :avatar
+        :menus
+        :text="userStore.userInfo?.realName"
+        description="ann.vben@gmail.com"
+        tag-text="Pro"
+        @clear-preferences-and-logout="handleLogout"
+        @logout="handleLogout"
+      />
+    </template>
+    <template #notification>
+      <Notification
+        :dot="showDot"
+        :notifications="notifications"
+        @clear="handleNoticeClear"
+        @read="(item) => item.id && markRead(item.id)"
+        @remove="(item) => item.id && remove(item.id)"
+        @make-all="handleMakeAll"
+        @on-click="handleClick"
+        @view-all="viewAll"
+      />
+    </template>
+    <template #extra>
+      <AuthenticationLoginExpiredModal
+        v-model:open="accessStore.loginExpired"
+        :avatar
+      >
+        <LoginForm />
+      </AuthenticationLoginExpiredModal>
+    </template>
+    <template #lock-screen>
+      <LockScreen :avatar @to-login="handleLogout" />
+    </template>
+  </BasicLayout>
+</template>
+
 <script lang="ts" setup>
 import type { NotificationItem } from '@vben/layouts';
 
@@ -185,47 +229,3 @@ watch(
   },
 );
 </script>
-
-<template>
-  <BasicLayout
-    :avatar
-    :text="userStore.userInfo?.realName"
-    @clear-preferences-and-logout="handleLogout"
-    @logout="handleLogout"
-  >
-    <template #user-dropdown>
-      <UserDropdown
-        :avatar
-        :menus
-        :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
-        tag-text="Pro"
-        @clear-preferences-and-logout="handleLogout"
-        @logout="handleLogout"
-      />
-    </template>
-    <template #notification>
-      <Notification
-        :dot="showDot"
-        :notifications="notifications"
-        @clear="handleNoticeClear"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
-        @make-all="handleMakeAll"
-        @on-click="handleClick"
-        @view-all="viewAll"
-      />
-    </template>
-    <template #extra>
-      <AuthenticationLoginExpiredModal
-        v-model:open="accessStore.loginExpired"
-        :avatar
-      >
-        <LoginForm />
-      </AuthenticationLoginExpiredModal>
-    </template>
-    <template #lock-screen>
-      <LockScreen :avatar @to-login="handleLogout" />
-    </template>
-  </BasicLayout>
-</template>

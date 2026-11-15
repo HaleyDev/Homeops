@@ -1,3 +1,147 @@
+<template>
+  <Dialog
+    :modal="false"
+    :open="state?.isOpen"
+    @update:open="() => (!submitting ? modalApi?.close() : undefined)"
+  >
+    <DialogContent
+      ref="contentRef"
+      :append-to="getAppendTo"
+      :class="
+        cn(
+          'inset-x-0 top-[10vh] mx-auto flex w-130 flex-col p-0',
+          shouldFullscreen ? 'rounded-none' : 'rounded-(--radius)',
+          {
+            'border border-border': bordered,
+            'shadow-3xl': !bordered,
+            'max-h-[min(80%,calc(100dvh-20px))] max-w-[calc(100vw-20px)]':
+              !shouldFullscreen,
+            'top-0 left-0 size-full! max-h-full! max-w-full! transform-[translate(0,0)]!':
+              shouldFullscreen,
+            'top-1/2': centered && !shouldFullscreen,
+            'duration-300': !dragging,
+            hidden: isClosed,
+          },
+          modalClass,
+        )
+      "
+      :force-mount="getForceMount"
+      :modal="modal"
+      :open="state?.isOpen"
+      :show-close-button="closable"
+      :animation-type="animationType"
+      :z-index="zIndex"
+      :overlay-blur="overlayBlur"
+      close-class="top-3"
+      @close-auto-focus="handleCloseAutoFocus"
+      @closed="handleClosed"
+      :close-disabled="submitting"
+      @escape-key-down="escapeKeyDown"
+      @focus-outside="handleFocusOutside"
+      @interact-outside="interactOutside"
+      @open-auto-focus="handleOpenAutoFocus"
+      @opened="handleOpened"
+      @pointer-down-outside="pointerDownOutside"
+    >
+      <DialogHeader
+        ref="headerRef"
+        :class="
+          cn(
+            'px-5 py-4',
+            {
+              'border-b': bordered,
+              hidden: !header,
+              'cursor-move select-none': shouldDraggable,
+            },
+            headerClass,
+          )
+        "
+      >
+        <DialogTitle v-if="title" class="text-left">
+          <slot name="title">
+            {{ title }}
+
+            <slot v-if="titleTooltip" name="titleTooltip">
+              <VbenHelpTooltip trigger-class="pb-1">
+                {{ titleTooltip }}
+              </VbenHelpTooltip>
+            </slot>
+          </slot>
+        </DialogTitle>
+        <DialogDescription v-if="description">
+          <slot name="description">
+            {{ description }}
+          </slot>
+        </DialogDescription>
+        <VisuallyHidden v-if="!title || !description">
+          <DialogTitle v-if="!title" />
+          <DialogDescription v-if="!description" />
+        </VisuallyHidden>
+      </DialogHeader>
+      <div
+        ref="wrapperRef"
+        :class="
+          cn('relative min-h-40 flex-1 overflow-y-auto p-3', contentClass, {
+            'pointer-events-none': showLoading || submitting,
+          })
+        "
+      >
+        <slot></slot>
+      </div>
+      <VbenLoading v-if="showLoading || submitting" spinning />
+      <VbenIconButton
+        v-if="fullscreenButton"
+        class="absolute top-3 right-10 flex-center size-6 rounded-full px-1 text-lg text-foreground/80 opacity-70 transition-opacity hover:bg-accent hover:text-accent-foreground hover:opacity-100 focus:outline-hidden disabled:pointer-events-none"
+        @click="handleFullscreen"
+      >
+        <Shrink v-if="fullscreen" class="size-3.5" />
+        <Expand v-else class="size-3.5" />
+      </VbenIconButton>
+
+      <DialogFooter
+        ref="footerRef"
+        v-if="showFooter"
+        :class="
+          cn(
+            'flex-row items-center justify-end p-2',
+            {
+              'border-t': bordered,
+            },
+            footerClass,
+          )
+        "
+      >
+        <slot name="prepend-footer"></slot>
+        <slot name="footer">
+          <component
+            :is="components.DefaultButton || VbenButton"
+            v-if="showCancelButton"
+            variant="outline"
+            :disabled="submitting"
+            @click="() => modalApi?.onCancel()"
+          >
+            <slot name="cancelText">
+              {{ cancelText || $t('cancel') }}
+            </slot>
+          </component>
+          <slot name="center-footer"></slot>
+          <component
+            :is="components.PrimaryButton || VbenButton"
+            v-if="showConfirmButton"
+            :disabled="confirmDisabled"
+            :loading="confirmLoading || submitting"
+            @click="() => modalApi?.onConfirm()"
+          >
+            <slot name="confirmText">
+              {{ confirmText || $t('confirm') }}
+            </slot>
+          </component>
+        </slot>
+        <slot name="append-footer"></slot>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+</template>
 <script lang="ts" setup>
 import type { ExtendedModalApi, ModalProps } from './modal';
 
@@ -228,147 +372,3 @@ function handleClosed() {
   props.modalApi?.onClosed();
 }
 </script>
-<template>
-  <Dialog
-    :modal="false"
-    :open="state?.isOpen"
-    @update:open="() => (!submitting ? modalApi?.close() : undefined)"
-  >
-    <DialogContent
-      ref="contentRef"
-      :append-to="getAppendTo"
-      :class="
-        cn(
-          'inset-x-0 top-[10vh] mx-auto flex w-130 flex-col p-0',
-          shouldFullscreen ? 'rounded-none' : 'rounded-(--radius)',
-          {
-            'border border-border': bordered,
-            'shadow-3xl': !bordered,
-            'max-h-[min(80%,calc(100dvh-20px))] max-w-[calc(100vw-20px)]':
-              !shouldFullscreen,
-            'top-0 left-0 size-full! max-h-full! max-w-full! transform-[translate(0,0)]!':
-              shouldFullscreen,
-            'top-1/2': centered && !shouldFullscreen,
-            'duration-300': !dragging,
-            hidden: isClosed,
-          },
-          modalClass,
-        )
-      "
-      :force-mount="getForceMount"
-      :modal="modal"
-      :open="state?.isOpen"
-      :show-close-button="closable"
-      :animation-type="animationType"
-      :z-index="zIndex"
-      :overlay-blur="overlayBlur"
-      close-class="top-3"
-      @close-auto-focus="handleCloseAutoFocus"
-      @closed="handleClosed"
-      :close-disabled="submitting"
-      @escape-key-down="escapeKeyDown"
-      @focus-outside="handleFocusOutside"
-      @interact-outside="interactOutside"
-      @open-auto-focus="handleOpenAutoFocus"
-      @opened="handleOpened"
-      @pointer-down-outside="pointerDownOutside"
-    >
-      <DialogHeader
-        ref="headerRef"
-        :class="
-          cn(
-            'px-5 py-4',
-            {
-              'border-b': bordered,
-              hidden: !header,
-              'cursor-move select-none': shouldDraggable,
-            },
-            headerClass,
-          )
-        "
-      >
-        <DialogTitle v-if="title" class="text-left">
-          <slot name="title">
-            {{ title }}
-
-            <slot v-if="titleTooltip" name="titleTooltip">
-              <VbenHelpTooltip trigger-class="pb-1">
-                {{ titleTooltip }}
-              </VbenHelpTooltip>
-            </slot>
-          </slot>
-        </DialogTitle>
-        <DialogDescription v-if="description">
-          <slot name="description">
-            {{ description }}
-          </slot>
-        </DialogDescription>
-        <VisuallyHidden v-if="!title || !description">
-          <DialogTitle v-if="!title" />
-          <DialogDescription v-if="!description" />
-        </VisuallyHidden>
-      </DialogHeader>
-      <div
-        ref="wrapperRef"
-        :class="
-          cn('relative min-h-40 flex-1 overflow-y-auto p-3', contentClass, {
-            'pointer-events-none': showLoading || submitting,
-          })
-        "
-      >
-        <slot></slot>
-      </div>
-      <VbenLoading v-if="showLoading || submitting" spinning />
-      <VbenIconButton
-        v-if="fullscreenButton"
-        class="absolute top-3 right-10 flex-center size-6 rounded-full px-1 text-lg text-foreground/80 opacity-70 transition-opacity hover:bg-accent hover:text-accent-foreground hover:opacity-100 focus:outline-hidden disabled:pointer-events-none"
-        @click="handleFullscreen"
-      >
-        <Shrink v-if="fullscreen" class="size-3.5" />
-        <Expand v-else class="size-3.5" />
-      </VbenIconButton>
-
-      <DialogFooter
-        ref="footerRef"
-        v-if="showFooter"
-        :class="
-          cn(
-            'flex-row items-center justify-end p-2',
-            {
-              'border-t': bordered,
-            },
-            footerClass,
-          )
-        "
-      >
-        <slot name="prepend-footer"></slot>
-        <slot name="footer">
-          <component
-            :is="components.DefaultButton || VbenButton"
-            v-if="showCancelButton"
-            variant="outline"
-            :disabled="submitting"
-            @click="() => modalApi?.onCancel()"
-          >
-            <slot name="cancelText">
-              {{ cancelText || $t('cancel') }}
-            </slot>
-          </component>
-          <slot name="center-footer"></slot>
-          <component
-            :is="components.PrimaryButton || VbenButton"
-            v-if="showConfirmButton"
-            :disabled="confirmDisabled"
-            :loading="confirmLoading || submitting"
-            @click="() => modalApi?.onConfirm()"
-          >
-            <slot name="confirmText">
-              {{ confirmText || $t('confirm') }}
-            </slot>
-          </component>
-        </slot>
-        <slot name="append-footer"></slot>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-</template>

@@ -1,3 +1,86 @@
+<template>
+  <div
+    v-if="domVisible"
+    :class="theme"
+    :style="hiddenSideStyle"
+    class="h-full transition-all duration-150"
+  ></div>
+  <aside
+    ref="asideRef"
+    :style="style"
+    class="fixed left-0 top-0 h-full transition-all duration-150"
+    :class="theme"
+    @mouseenter="handleMouseenter"
+    @mouseleave="handleMouseleave"
+  >
+    <div
+      class="h-full"
+      :class="[
+        {
+          'bg-sidebar-deep': isSidebarMixed,
+          'border-r border-border bg-sidebar': !isSidebarMixed,
+        },
+      ]"
+      :style="{ width: `${width}px` }"
+    >
+      <SidebarFixedButton
+        v-if="!collapse && !isSidebarMixed && showFixedButton"
+        v-model:expand-on-hover="expandOnHover"
+      />
+      <div v-if="slots.logo" :style="headerStyle">
+        <slot name="logo"></slot>
+      </div>
+      <VbenScrollbar :style="contentStyle" shadow shadow-border>
+        <slot></slot>
+      </VbenScrollbar>
+
+      <div :style="collapseStyle"></div>
+      <SidebarCollapseButton
+        v-if="showCollapseButton && !isSidebarMixed"
+        v-model:collapsed="collapse"
+      />
+    </div>
+    <div
+      v-if="isSidebarMixed"
+      :class="[
+        themeSub,
+        {
+          'border-l': extraVisible,
+        },
+      ]"
+      :style="extraStyle"
+      class="fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar transition-all duration-200"
+    >
+      <SidebarCollapseButton
+        v-if="isSidebarMixed && expandOnHover"
+        v-model:collapsed="extraCollapse"
+      />
+
+      <SidebarFixedButton
+        v-if="!extraCollapse"
+        v-model:expand-on-hover="expandOnHover"
+      />
+      <div v-if="!extraCollapse" :style="extraTitleStyle" class="pl-2">
+        <slot name="extra-title"></slot>
+      </div>
+      <VbenScrollbar
+        :style="extraContentStyle"
+        class="border-border py-2"
+        shadow
+        shadow-border
+      >
+        <slot name="extra"></slot>
+      </VbenScrollbar>
+    </div>
+    <div
+      v-if="draggable"
+      ref="dragBarRef"
+      class="absolute inset-y-0 -right-px z-1000 w-0.5 cursor-col-resize hover:bg-primary"
+      @mousedown="handleDragSidebar"
+    ></div>
+  </aside>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -301,86 +384,3 @@ onUnmounted(() => {
   endDrag();
 });
 </script>
-
-<template>
-  <div
-    v-if="domVisible"
-    :class="theme"
-    :style="hiddenSideStyle"
-    class="h-full transition-all duration-150"
-  ></div>
-  <aside
-    ref="asideRef"
-    :style="style"
-    class="fixed left-0 top-0 h-full transition-all duration-150"
-    :class="theme"
-    @mouseenter="handleMouseenter"
-    @mouseleave="handleMouseleave"
-  >
-    <div
-      class="h-full"
-      :class="[
-        {
-          'bg-sidebar-deep': isSidebarMixed,
-          'border-r border-border bg-sidebar': !isSidebarMixed,
-        },
-      ]"
-      :style="{ width: `${width}px` }"
-    >
-      <SidebarFixedButton
-        v-if="!collapse && !isSidebarMixed && showFixedButton"
-        v-model:expand-on-hover="expandOnHover"
-      />
-      <div v-if="slots.logo" :style="headerStyle">
-        <slot name="logo"></slot>
-      </div>
-      <VbenScrollbar :style="contentStyle" shadow shadow-border>
-        <slot></slot>
-      </VbenScrollbar>
-
-      <div :style="collapseStyle"></div>
-      <SidebarCollapseButton
-        v-if="showCollapseButton && !isSidebarMixed"
-        v-model:collapsed="collapse"
-      />
-    </div>
-    <div
-      v-if="isSidebarMixed"
-      :class="[
-        themeSub,
-        {
-          'border-l': extraVisible,
-        },
-      ]"
-      :style="extraStyle"
-      class="fixed top-0 h-full overflow-hidden border-r border-border bg-sidebar transition-all duration-200"
-    >
-      <SidebarCollapseButton
-        v-if="isSidebarMixed && expandOnHover"
-        v-model:collapsed="extraCollapse"
-      />
-
-      <SidebarFixedButton
-        v-if="!extraCollapse"
-        v-model:expand-on-hover="expandOnHover"
-      />
-      <div v-if="!extraCollapse" :style="extraTitleStyle" class="pl-2">
-        <slot name="extra-title"></slot>
-      </div>
-      <VbenScrollbar
-        :style="extraContentStyle"
-        class="border-border py-2"
-        shadow
-        shadow-border
-      >
-        <slot name="extra"></slot>
-      </VbenScrollbar>
-    </div>
-    <div
-      v-if="draggable"
-      ref="dragBarRef"
-      class="absolute inset-y-0 -right-px z-1000 w-0.5 cursor-col-resize hover:bg-primary"
-      @mousedown="handleDragSidebar"
-    ></div>
-  </aside>
-</template>

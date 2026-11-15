@@ -1,3 +1,44 @@
+<template>
+  <div>
+    <VbenTooltip
+      :content-style="{
+        ...tooltipOverlayStyle,
+        maxWidth: `${defaultTooltipMaxWidth}px`,
+        fontSize: `${tooltipFontSize}px`,
+        color: tooltipColor,
+        backgroundColor: tooltipBackgroundColor,
+      }"
+      :disabled="
+        !props.tooltip || isExpand || (props.tooltipWhenEllipsis && !isEllipsis)
+      "
+      :side="placement"
+    >
+      <slot name="tooltip">
+        <slot></slot>
+      </slot>
+
+      <template #trigger>
+        <div
+          ref="ellipsis"
+          :class="{
+            'cursor-pointer!': expand,
+            ['block truncate']: line === 1,
+            [$style.ellipsisMultiLine]: line > 1,
+          }"
+          :style="{
+            '-webkit-line-clamp': isExpand ? '' : line,
+            'max-width': textMaxWidth,
+          }"
+          class="cursor-text overflow-hidden"
+          @click="handleExpand"
+          v-bind="$attrs"
+        >
+          <slot></slot>
+        </div>
+      </template>
+    </VbenTooltip>
+  </div>
+</template>
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -182,47 +223,6 @@ function handleExpand() {
   props.expand && onExpand();
 }
 </script>
-<template>
-  <div>
-    <VbenTooltip
-      :content-style="{
-        ...tooltipOverlayStyle,
-        maxWidth: `${defaultTooltipMaxWidth}px`,
-        fontSize: `${tooltipFontSize}px`,
-        color: tooltipColor,
-        backgroundColor: tooltipBackgroundColor,
-      }"
-      :disabled="
-        !props.tooltip || isExpand || (props.tooltipWhenEllipsis && !isEllipsis)
-      "
-      :side="placement"
-    >
-      <slot name="tooltip">
-        <slot></slot>
-      </slot>
-
-      <template #trigger>
-        <div
-          ref="ellipsis"
-          :class="{
-            'cursor-pointer!': expand,
-            ['block truncate']: line === 1,
-            [$style.ellipsisMultiLine]: line > 1,
-          }"
-          :style="{
-            '-webkit-line-clamp': isExpand ? '' : line,
-            'max-width': textMaxWidth,
-          }"
-          class="cursor-text overflow-hidden"
-          @click="handleExpand"
-          v-bind="$attrs"
-        >
-          <slot></slot>
-        </div>
-      </template>
-    </VbenTooltip>
-  </div>
-</template>
 
 <style module>
 .ellipsisMultiLine {

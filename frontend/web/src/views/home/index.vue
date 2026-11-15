@@ -1,15 +1,3 @@
-<script lang="ts" setup>
-import { IconifyIcon } from '@vben/icons';
-import { openWindow } from '@vben/utils';
-
-import { serviceItems } from './services';
-
-/** 点击卡片：新标签页打开对应服务（管理台本身留在当前页） */
-function openService(url: string) {
-  openWindow(url, { target: '_blank' });
-}
-</script>
-
 <template>
   <div class="p-5">
     <!-- 页头 -->
@@ -58,3 +46,15 @@ function openService(url: string) {
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { IconifyIcon } from '@vben/icons';
+import { openWindow } from '@vben/utils';
+
+import { serviceItems } from './services';
+
+/** 点击卡片：新标签页打开对应服务（管理台本身留在当前页） */
+function openService(url: string) {
+  openWindow(url, { target: '_blank' });
+}
+</script>

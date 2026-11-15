@@ -1,3 +1,17 @@
+<template>
+  <VbenDropdownRadioMenu
+    :menus="menus"
+    :model-value="preferences.app.authPageLayout"
+    @update:model-value="handleUpdate"
+  >
+    <VbenIconButton>
+      <PanelRight v-if="authPanelRight" class="size-4" />
+      <PanelLeft v-if="authPanelLeft" class="size-4" />
+      <InspectionPanel v-if="authPanelCenter" class="size-4" />
+    </VbenIconButton>
+  </VbenDropdownRadioMenu>
+</template>
+
 <script setup lang="ts">
 import type { AuthPageLayoutType } from '@vben/types';
 
@@ -48,17 +62,3 @@ function handleUpdate(value: string | undefined) {
   });
 }
 </script>
-
-<template>
-  <VbenDropdownRadioMenu
-    :menus="menus"
-    :model-value="preferences.app.authPageLayout"
-    @update:model-value="handleUpdate"
-  >
-    <VbenIconButton>
-      <PanelRight v-if="authPanelRight" class="size-4" />
-      <PanelLeft v-if="authPanelLeft" class="size-4" />
-      <InspectionPanel v-if="authPanelCenter" class="size-4" />
-    </VbenIconButton>
-  </VbenDropdownRadioMenu>
-</template>

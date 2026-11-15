@@ -1,3 +1,11 @@
+<template>
+  <ContextMenuSeparator
+    data-slot="context-menu-separator"
+    v-bind="delegatedProps"
+    :class="cn('bg-border -mx-1 my-1 h-px', props.class)"
+  />
+</template>
+
 <script setup lang="ts">
 import type { ContextMenuSeparatorProps } from 'reka-ui';
 
@@ -14,11 +22,3 @@ const props = defineProps<
 
 const delegatedProps = reactiveOmit(props, 'class');
 </script>
-
-<template>
-  <ContextMenuSeparator
-    data-slot="context-menu-separator"
-    v-bind="delegatedProps"
-    :class="cn('bg-border -mx-1 my-1 h-px', props.class)"
-  />
-</template>

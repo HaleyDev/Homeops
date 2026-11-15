@@ -1,3 +1,56 @@
+<template>
+  <div class="relative flex h-full flex-col">
+    <div
+      v-if="
+        description ||
+        $slots.description ||
+        title ||
+        $slots.title ||
+        $slots.extra
+      "
+      ref="headerRef"
+      :class="
+        cn(
+          'relative flex items-end border-b border-border bg-card px-6 py-4',
+          headerClass,
+        )
+      "
+    >
+      <div class="flex-auto">
+        <slot name="title">
+          <div v-if="title" class="mb-2 flex text-lg font-semibold">
+            {{ title }}
+          </div>
+        </slot>
+
+        <slot name="description">
+          <p v-if="description" class="text-muted-foreground">
+            {{ description }}
+          </p>
+        </slot>
+      </div>
+
+      <div v-if="$slots.extra">
+        <slot name="extra"></slot>
+      </div>
+    </div>
+
+    <div
+      :class="cn(autoContentHeight ? 'h-full' : 'flex-1', 'p-4', contentClass)"
+      :style="contentStyle"
+    >
+      <slot></slot>
+    </div>
+    <div
+      v-if="$slots.footer"
+      ref="footerRef"
+      :class="cn('align-center flex bg-card px-6 py-4', footerClass)"
+    >
+      <slot name="footer"></slot>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { StyleValue } from 'vue';
 
@@ -54,56 +107,3 @@ onMounted(() => {
   calcContentHeight();
 });
 </script>
-
-<template>
-  <div class="relative flex h-full flex-col">
-    <div
-      v-if="
-        description ||
-        $slots.description ||
-        title ||
-        $slots.title ||
-        $slots.extra
-      "
-      ref="headerRef"
-      :class="
-        cn(
-          'relative flex items-end border-b border-border bg-card px-6 py-4',
-          headerClass,
-        )
-      "
-    >
-      <div class="flex-auto">
-        <slot name="title">
-          <div v-if="title" class="mb-2 flex text-lg font-semibold">
-            {{ title }}
-          </div>
-        </slot>
-
-        <slot name="description">
-          <p v-if="description" class="text-muted-foreground">
-            {{ description }}
-          </p>
-        </slot>
-      </div>
-
-      <div v-if="$slots.extra">
-        <slot name="extra"></slot>
-      </div>
-    </div>
-
-    <div
-      :class="cn(autoContentHeight ? 'h-full' : 'flex-1', 'p-4', contentClass)"
-      :style="contentStyle"
-    >
-      <slot></slot>
-    </div>
-    <div
-      v-if="$slots.footer"
-      ref="footerRef"
-      :class="cn('align-center flex bg-card px-6 py-4', footerClass)"
-    >
-      <slot name="footer"></slot>
-    </div>
-  </div>
-</template>

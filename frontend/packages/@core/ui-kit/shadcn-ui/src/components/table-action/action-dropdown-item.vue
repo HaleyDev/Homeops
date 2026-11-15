@@ -1,3 +1,59 @@
+<template>
+  <!--
+    气泡确认：菜单项同时作为 Popover 触发器。
+    通过双重 as-child（DropdownMenuItem + PopoverTrigger 均合并到同一个叶子元素），
+    使该元素既是菜单项又是弹层触发器；@select 阻止点击后菜单自动关闭。
+  -->
+  <Popover v-if="action.popConfirm" v-model:open="open">
+    <PopoverTrigger as-child>
+      <DropdownMenuItem
+        as-child
+        :class="itemClass"
+        :disabled="action.disabled"
+        @select="preventDefault"
+      >
+        <div>
+          <VbenIcon v-if="action.icon" :icon="action.icon" class="size-4" />
+          {{ action.text }}
+        </div>
+      </DropdownMenuItem>
+    </PopoverTrigger>
+    <PopoverContent
+      class="z-popup w-60"
+      side="left"
+      @focus-outside="preventDefault"
+      @open-auto-focus="preventDefault"
+    >
+      <div class="text-foreground mb-3 text-sm">
+        {{ action.popConfirm.title ?? $t('confirmTitle') }}
+      </div>
+      <div class="flex justify-end gap-2">
+        <VbenButton size="sm" variant="outline" @click="onCancel">
+          {{ action.popConfirm.cancelText ?? $t('cancel') }}
+        </VbenButton>
+        <VbenButton
+          :variant="action.danger ? 'destructive' : 'default'"
+          size="sm"
+          @click="onConfirm"
+        >
+          {{ action.popConfirm.okText ?? $t('confirm') }}
+        </VbenButton>
+      </div>
+    </PopoverContent>
+  </Popover>
+
+  <!-- 普通下拉项 -->
+  <DropdownMenuItem
+    v-else
+    :class="itemClass"
+    :disabled="action.disabled"
+    @click="onClick"
+  >
+    <VbenIcon v-if="action.icon" :icon="action.icon" class="size-4" />
+    {{ action.text }}
+  </DropdownMenuItem>
+</template>
+
 <script setup lang="ts">
 import type { ActionItem } from './types';
 
@@ -58,59 +114,3 @@ function onCancel() {
   open.value = false;
 }
 </script>
-
-<template>
-  <!--
-    气泡确认：菜单项同时作为 Popover 触发器。
-    通过双重 as-child（DropdownMenuItem + PopoverTrigger 均合并到同一个叶子元素），
-    使该元素既是菜单项又是弹层触发器；@select 阻止点击后菜单自动关闭。
-  -->
-  <Popover v-if="action.popConfirm" v-model:open="open">
-    <PopoverTrigger as-child>
-      <DropdownMenuItem
-        as-child
-        :class="itemClass"
-        :disabled="action.disabled"
-        @select="preventDefault"
-      >
-        <div>
-          <VbenIcon v-if="action.icon" :icon="action.icon" class="size-4" />
-          {{ action.text }}
-        </div>
-      </DropdownMenuItem>
-    </PopoverTrigger>
-    <PopoverContent
-      class="z-popup w-60"
-      side="left"
-      @focus-outside="preventDefault"
-      @open-auto-focus="preventDefault"
-    >
-      <div class="text-foreground mb-3 text-sm">
-        {{ action.popConfirm.title ?? $t('confirmTitle') }}
-      </div>
-      <div class="flex justify-end gap-2">
-        <VbenButton size="sm" variant="outline" @click="onCancel">
-          {{ action.popConfirm.cancelText ?? $t('cancel') }}
-        </VbenButton>
-        <VbenButton
-          :variant="action.danger ? 'destructive' : 'default'"
-          size="sm"
-          @click="onConfirm"
-        >
-          {{ action.popConfirm.okText ?? $t('confirm') }}
-        </VbenButton>
-      </div>
-    </PopoverContent>
-  </Popover>
-
-  <!-- 普通下拉项 -->
-  <DropdownMenuItem
-    v-else
-    :class="itemClass"
-    :disabled="action.disabled"
-    @click="onClick"
-  >
-    <VbenIcon v-if="action.icon" :icon="action.icon" class="size-4" />
-    {{ action.text }}
-  </DropdownMenuItem>
-</template>

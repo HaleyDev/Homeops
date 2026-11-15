@@ -1,3 +1,25 @@
+<template>
+  <div :class="[props.theme, { boxed: props.boxed }]" class="vben-json-viewer">
+    <VueJsonPretty v-bind="bindProps">
+      <template #renderNodeActions="{ node, defaultActions }">
+        <slot name="copy" :node="node" :default-actions="defaultActions">
+          <span
+            v-if="props.copyable"
+            class="vben-json-copy-btn"
+            :class="[{ 'is-copied': copiedPath === node.path }]"
+            @click.stop="handleCopy(node, defaultActions.copy)"
+          >
+            {{
+              copiedPath === node.path
+                ? copyConfig.copiedText
+                : copyConfig.copyText
+            }}
+          </span>
+        </slot>
+      </template>
+    </VueJsonPretty>
+  </div>
+</template>
 <script lang="ts" setup>
 import type { SetupContext } from 'vue';
 
@@ -101,28 +123,6 @@ const bindProps = computed<Recordable<any>>(() => {
   };
 });
 </script>
-<template>
-  <div :class="[props.theme, { boxed: props.boxed }]" class="vben-json-viewer">
-    <VueJsonPretty v-bind="bindProps">
-      <template #renderNodeActions="{ node, defaultActions }">
-        <slot name="copy" :node="node" :default-actions="defaultActions">
-          <span
-            v-if="props.copyable"
-            class="vben-json-copy-btn"
-            :class="[{ 'is-copied': copiedPath === node.path }]"
-            @click.stop="handleCopy(node, defaultActions.copy)"
-          >
-            {{
-              copiedPath === node.path
-                ? copyConfig.copiedText
-                : copyConfig.copyText
-            }}
-          </span>
-        </slot>
-      </template>
-    </VueJsonPretty>
-  </div>
-</template>
 <style lang="scss">
 @use './style.scss';
 </style>

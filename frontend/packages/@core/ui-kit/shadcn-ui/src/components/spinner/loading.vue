@@ -1,3 +1,31 @@
+<template>
+  <div
+    :class="
+      cn(
+        'bg-overlay-content dark:bg-overlay absolute top-0 left-0 z-100 flex size-full flex-col items-center justify-center transition-all duration-500',
+        {
+          'invisible opacity-0': !showSpinner,
+        },
+        props.class,
+      )
+    "
+    @transitionend="onTransitionEnd"
+  >
+    <slot name="icon" v-if="renderSpinner">
+      <span class="dot relative inline-block size-9 text-3xl">
+        <i
+          v-for="index in 4"
+          :key="index"
+          class="bg-primary absolute block size-4 origin-[50%_50%] scale-75 rounded-full opacity-30"
+        ></i>
+      </span>
+    </slot>
+
+    <div v-if="text" class="text-primary mt-4 text-xs">{{ text }}</div>
+    <slot></slot>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import { ref, watch } from 'vue';
 
@@ -64,34 +92,6 @@ function onTransitionEnd() {
   }
 }
 </script>
-
-<template>
-  <div
-    :class="
-      cn(
-        'bg-overlay-content dark:bg-overlay absolute top-0 left-0 z-100 flex size-full flex-col items-center justify-center transition-all duration-500',
-        {
-          'invisible opacity-0': !showSpinner,
-        },
-        props.class,
-      )
-    "
-    @transitionend="onTransitionEnd"
-  >
-    <slot name="icon" v-if="renderSpinner">
-      <span class="dot relative inline-block size-9 text-3xl">
-        <i
-          v-for="index in 4"
-          :key="index"
-          class="bg-primary absolute block size-4 origin-[50%_50%] scale-75 rounded-full opacity-30"
-        ></i>
-      </span>
-    </slot>
-
-    <div v-if="text" class="text-primary mt-4 text-xs">{{ text }}</div>
-    <slot></slot>
-  </div>
-</template>
 
 <style scoped>
 .dot {

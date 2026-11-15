@@ -1,15 +1,3 @@
-<script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { NumberFieldInput } from 'reka-ui';
-
-const props = defineProps<{
-  class?: HTMLAttributes['class'];
-}>();
-</script>
-
 <template>
   <NumberFieldInput
     data-slot="input"
@@ -21,3 +9,15 @@ const props = defineProps<{
     "
   />
 </template>
+
+<script setup lang="ts">
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { NumberFieldInput } from 'reka-ui';
+
+const props = defineProps<{
+  class?: HTMLAttributes['class'];
+}>();
+</script>

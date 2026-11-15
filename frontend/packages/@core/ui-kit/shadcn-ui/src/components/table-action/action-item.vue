@@ -1,49 +1,3 @@
-<script setup lang="ts">
-import type { ActionItem } from './types';
-
-import { computed, ref } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { Popover, PopoverContent, PopoverTrigger } from '../../ui';
-import { VbenButton } from '../button';
-import { VbenIcon } from '../icon';
-
-const props = defineProps<{ action: ActionItem }>();
-
-const open = ref(false);
-
-const buttonClass = computed(() =>
-  cn(
-    'gap-1',
-    props.action.danger && 'text-destructive hover:text-destructive',
-    props.action.class,
-  ),
-);
-
-const variant = computed(() => props.action.variant ?? 'link');
-const size = computed(() => props.action.size ?? 'default');
-
-function onClick() {
-  if (props.action.disabled || props.action.loading) return;
-  props.action.onClick?.();
-}
-
-function onConfirm() {
-  open.value = false;
-  const pc = props.action.popConfirm;
-  if (pc?.confirm) {
-    pc.confirm();
-  } else {
-    props.action.onClick?.();
-  }
-}
-
-function onCancel() {
-  open.value = false;
-}
-</script>
-
 <template>
   <!-- 气泡确认 -->
   <Popover v-if="action.popConfirm" v-model:open="open">
@@ -95,3 +49,49 @@ function onCancel() {
     <span v-if="action.text">{{ action.text }}</span>
   </VbenButton>
 </template>
+
+<script setup lang="ts">
+import type { ActionItem } from './types';
+
+import { computed, ref } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { Popover, PopoverContent, PopoverTrigger } from '../../ui';
+import { VbenButton } from '../button';
+import { VbenIcon } from '../icon';
+
+const props = defineProps<{ action: ActionItem }>();
+
+const open = ref(false);
+
+const buttonClass = computed(() =>
+  cn(
+    'gap-1',
+    props.action.danger && 'text-destructive hover:text-destructive',
+    props.action.class,
+  ),
+);
+
+const variant = computed(() => props.action.variant ?? 'link');
+const size = computed(() => props.action.size ?? 'default');
+
+function onClick() {
+  if (props.action.disabled || props.action.loading) return;
+  props.action.onClick?.();
+}
+
+function onConfirm() {
+  open.value = false;
+  const pc = props.action.popConfirm;
+  if (pc?.confirm) {
+    pc.confirm();
+  } else {
+    props.action.onClick?.();
+  }
+}
+
+function onCancel() {
+  open.value = false;
+}
+</script>

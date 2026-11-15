@@ -1,3 +1,14 @@
+<template>
+  <SplitterPanel
+    ref="panelRef"
+    v-slot="slotProps"
+    data-slot="resizable-panel"
+    v-bind="forwarded"
+  >
+    <slot v-bind="slotProps"></slot>
+  </SplitterPanel>
+</template>
+
 <script setup lang="ts">
 import type { SplitterPanelEmits, SplitterPanelProps } from 'reka-ui';
 
@@ -19,14 +30,3 @@ defineExpose({
   resize: (size: number) => panelRef.value?.resize(size),
 });
 </script>
-
-<template>
-  <SplitterPanel
-    ref="panelRef"
-    v-slot="slotProps"
-    data-slot="resizable-panel"
-    v-bind="forwarded"
-  >
-    <slot v-bind="slotProps"></slot>
-  </SplitterPanel>
-</template>

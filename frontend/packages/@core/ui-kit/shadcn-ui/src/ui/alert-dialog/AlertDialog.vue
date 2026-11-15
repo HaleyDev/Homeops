@@ -1,3 +1,13 @@
+<template>
+  <AlertDialogRoot
+    v-slot="slotProps"
+    data-slot="alert-dialog"
+    v-bind="forwarded"
+  >
+    <slot v-bind="slotProps"></slot>
+  </AlertDialogRoot>
+</template>
+
 <script setup lang="ts">
 import type { AlertDialogEmits, AlertDialogProps } from 'reka-ui';
 
@@ -8,13 +18,3 @@ const emits = defineEmits<AlertDialogEmits>();
 
 const forwarded = useForwardPropsEmits(props, emits);
 </script>
-
-<template>
-  <AlertDialogRoot
-    v-slot="slotProps"
-    data-slot="alert-dialog"
-    v-bind="forwarded"
-  >
-    <slot v-bind="slotProps"></slot>
-  </AlertDialogRoot>
-</template>

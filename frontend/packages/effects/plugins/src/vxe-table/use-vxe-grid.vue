@@ -1,3 +1,123 @@
+<template>
+  <div :class="cn('h-full rounded-md bg-card', className)">
+    <VxeGrid
+      ref="gridRef"
+      :class="
+        cn(
+          'p-2',
+          {
+            'pt-0': showToolbar && !formOptions,
+          },
+          gridClass,
+        )
+      "
+      v-bind="options"
+      v-on="events"
+    >
+      <!-- 左侧操作区域或者title -->
+      <template v-if="showToolbar" #toolbar-actions="slotProps">
+        <slot v-if="showTableTitle" name="table-title">
+          <div class="flex-center gap-1 text-[1rem] font-bold">
+            {{ tableTitle }}
+            <VbenHelpTooltip v-if="tableTitleHelp">
+              {{ tableTitleHelp }}
+            </VbenHelpTooltip>
+          </div>
+        </slot>
+        <slot name="toolbar-actions" v-bind="slotProps"> </slot>
+      </template>
+
+      <!-- 继承默认的slot -->
+      <template
+        v-for="slotName in delegatedSlots"
+        :key="slotName"
+        #[slotName]="slotProps"
+      >
+        <slot :name="slotName" v-bind="slotProps"></slot>
+      </template>
+      <template #toolbar-tools="slotProps">
+        <slot name="toolbar-tools" v-bind="slotProps"></slot>
+        <VxeButton
+          icon="vxe-icon-search"
+          circle
+          class="ml-2"
+          v-if="gridOptions?.toolbarConfig?.search && !!formOptions"
+          :status="showSearchForm ? 'primary' : undefined"
+          :title="$t('common.search')"
+          @click="onSearchBtnClick"
+        />
+      </template>
+
+      <!-- form表单 -->
+      <template #form>
+        <div
+          v-if="formOptions"
+          v-show="showSearchForm !== false"
+          :class="
+            cn(
+              'relative rounded-sm py-3',
+              isCompactForm
+                ? isSeparator
+                  ? 'pb-8'
+                  : 'pb-4'
+                : isSeparator
+                  ? 'pb-4'
+                  : 'pb-0',
+            )
+          "
+        >
+          <slot name="form">
+            <Form>
+              <template
+                v-for="slotName in delegatedFormSlots"
+                :key="slotName"
+                #[slotName]="slotProps"
+              >
+                <slot
+                  :name="`${FORM_SLOT_PREFIX}${slotName}`"
+                  v-bind="slotProps"
+                ></slot>
+              </template>
+              <template #reset-before="slotProps">
+                <slot name="reset-before" v-bind="slotProps"></slot>
+              </template>
+              <template #submit-before="slotProps">
+                <slot name="submit-before" v-bind="slotProps"></slot>
+              </template>
+              <template #expand-before="slotProps">
+                <slot name="expand-before" v-bind="slotProps"></slot>
+              </template>
+              <template #expand-after="slotProps">
+                <slot name="expand-after" v-bind="slotProps"></slot>
+              </template>
+            </Form>
+          </slot>
+          <div
+            v-if="isSeparator"
+            :style="{
+              ...(separatorBg ? { backgroundColor: separatorBg } : undefined),
+            }"
+            class="absolute bottom-1 -left-2 z-100 h-2 w-[calc(100%+1rem)] overflow-hidden bg-background-deep md:bottom-2 md:h-3"
+          ></div>
+        </div>
+      </template>
+      <!-- loading -->
+      <template #loading>
+        <slot name="loading">
+          <VbenLoading :spinning="true" />
+        </slot>
+      </template>
+      <!-- 统一控状态 -->
+      <template v-if="showDefaultEmpty" #empty>
+        <slot name="empty">
+          <EmptyIcon class="mx-auto" />
+          <div class="mt-2">{{ $t('common.noData') }}</div>
+        </slot>
+      </template>
+    </VxeGrid>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import type {
   VxeGridDefines,
@@ -392,123 +512,3 @@ onUnmounted(() => {
   props.api?.unmount?.();
 });
 </script>
-
-<template>
-  <div :class="cn('h-full rounded-md bg-card', className)">
-    <VxeGrid
-      ref="gridRef"
-      :class="
-        cn(
-          'p-2',
-          {
-            'pt-0': showToolbar && !formOptions,
-          },
-          gridClass,
-        )
-      "
-      v-bind="options"
-      v-on="events"
-    >
-      <!-- 左侧操作区域或者title -->
-      <template v-if="showToolbar" #toolbar-actions="slotProps">
-        <slot v-if="showTableTitle" name="table-title">
-          <div class="flex-center gap-1 text-[1rem] font-bold">
-            {{ tableTitle }}
-            <VbenHelpTooltip v-if="tableTitleHelp">
-              {{ tableTitleHelp }}
-            </VbenHelpTooltip>
-          </div>
-        </slot>
-        <slot name="toolbar-actions" v-bind="slotProps"> </slot>
-      </template>
-
-      <!-- 继承默认的slot -->
-      <template
-        v-for="slotName in delegatedSlots"
-        :key="slotName"
-        #[slotName]="slotProps"
-      >
-        <slot :name="slotName" v-bind="slotProps"></slot>
-      </template>
-      <template #toolbar-tools="slotProps">
-        <slot name="toolbar-tools" v-bind="slotProps"></slot>
-        <VxeButton
-          icon="vxe-icon-search"
-          circle
-          class="ml-2"
-          v-if="gridOptions?.toolbarConfig?.search && !!formOptions"
-          :status="showSearchForm ? 'primary' : undefined"
-          :title="$t('common.search')"
-          @click="onSearchBtnClick"
-        />
-      </template>
-
-      <!-- form表单 -->
-      <template #form>
-        <div
-          v-if="formOptions"
-          v-show="showSearchForm !== false"
-          :class="
-            cn(
-              'relative rounded-sm py-3',
-              isCompactForm
-                ? isSeparator
-                  ? 'pb-8'
-                  : 'pb-4'
-                : isSeparator
-                  ? 'pb-4'
-                  : 'pb-0',
-            )
-          "
-        >
-          <slot name="form">
-            <Form>
-              <template
-                v-for="slotName in delegatedFormSlots"
-                :key="slotName"
-                #[slotName]="slotProps"
-              >
-                <slot
-                  :name="`${FORM_SLOT_PREFIX}${slotName}`"
-                  v-bind="slotProps"
-                ></slot>
-              </template>
-              <template #reset-before="slotProps">
-                <slot name="reset-before" v-bind="slotProps"></slot>
-              </template>
-              <template #submit-before="slotProps">
-                <slot name="submit-before" v-bind="slotProps"></slot>
-              </template>
-              <template #expand-before="slotProps">
-                <slot name="expand-before" v-bind="slotProps"></slot>
-              </template>
-              <template #expand-after="slotProps">
-                <slot name="expand-after" v-bind="slotProps"></slot>
-              </template>
-            </Form>
-          </slot>
-          <div
-            v-if="isSeparator"
-            :style="{
-              ...(separatorBg ? { backgroundColor: separatorBg } : undefined),
-            }"
-            class="absolute bottom-1 -left-2 z-100 h-2 w-[calc(100%+1rem)] overflow-hidden bg-background-deep md:bottom-2 md:h-3"
-          ></div>
-        </div>
-      </template>
-      <!-- loading -->
-      <template #loading>
-        <slot name="loading">
-          <VbenLoading :spinning="true" />
-        </slot>
-      </template>
-      <!-- 统一控状态 -->
-      <template v-if="showDefaultEmpty" #empty>
-        <slot name="empty">
-          <EmptyIcon class="mx-auto" />
-          <div class="mt-2">{{ $t('common.noData') }}</div>
-        </slot>
-      </template>
-    </VxeGrid>
-  </div>
-</template>

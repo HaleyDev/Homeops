@@ -1,3 +1,34 @@
+<template>
+  <ScrollArea
+    :class="[cn(props.class), computedShadowClasses]"
+    :on-scroll="handleScroll"
+    class="vben-scrollbar relative"
+  >
+    <div
+      v-if="showShadowTop"
+      :class="{
+        'opacity-100': !isAtTop,
+        'border-border border-t': shadowBorder && !isAtTop,
+      }"
+      class="scrollbar-top-shadow pointer-events-none absolute top-0 z-10 h-12 w-full opacity-0 transition-opacity duration-300 ease-in-out will-change-[opacity]"
+    ></div>
+    <slot></slot>
+    <div
+      v-if="showShadowBottom"
+      :class="{
+        'opacity-100': !isAtTop && !isAtBottom,
+        'border-border border-b': shadowBorder && !isAtTop && !isAtBottom,
+      }"
+      class="scrollbar-bottom-shadow pointer-events-none absolute bottom-0 z-10 h-12 w-full opacity-0 transition-opacity duration-300 ease-in-out will-change-[opacity]"
+    ></div>
+    <ScrollBar
+      v-if="horizontal"
+      :class="cn(scrollBarClass)"
+      orientation="horizontal"
+    />
+  </ScrollArea>
+</template>
+
 <script setup lang="ts">
 import type { ClassType } from '@vben-core/typings';
 
@@ -89,37 +120,6 @@ function handleScroll(event: Event) {
   });
 }
 </script>
-
-<template>
-  <ScrollArea
-    :class="[cn(props.class), computedShadowClasses]"
-    :on-scroll="handleScroll"
-    class="vben-scrollbar relative"
-  >
-    <div
-      v-if="showShadowTop"
-      :class="{
-        'opacity-100': !isAtTop,
-        'border-border border-t': shadowBorder && !isAtTop,
-      }"
-      class="scrollbar-top-shadow pointer-events-none absolute top-0 z-10 h-12 w-full opacity-0 transition-opacity duration-300 ease-in-out will-change-[opacity]"
-    ></div>
-    <slot></slot>
-    <div
-      v-if="showShadowBottom"
-      :class="{
-        'opacity-100': !isAtTop && !isAtBottom,
-        'border-border border-b': shadowBorder && !isAtTop && !isAtBottom,
-      }"
-      class="scrollbar-bottom-shadow pointer-events-none absolute bottom-0 z-10 h-12 w-full opacity-0 transition-opacity duration-300 ease-in-out will-change-[opacity]"
-    ></div>
-    <ScrollBar
-      v-if="horizontal"
-      :class="cn(scrollBarClass)"
-      orientation="horizontal"
-    />
-  </ScrollArea>
-</template>
 
 <style scoped>
 .vben-scrollbar {

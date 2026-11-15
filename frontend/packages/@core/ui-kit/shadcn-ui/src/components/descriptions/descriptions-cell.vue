@@ -1,3 +1,31 @@
+<template>
+  <component :is="tag" :class="cellClass" :colspan="span">
+    <!-- 边框模式：每个单元格仅承载 label 或 content -->
+    <template v-if="bordered">
+      <span v-if="hasLabel" :style="labelStyle">
+        <VbenRenderContent :content="displayLabel" />
+      </span>
+      <span v-if="hasContent" :style="contentStyle">
+        <VbenRenderContent :content="displayContent" />
+      </span>
+    </template>
+
+    <!-- 非边框模式：label + content 容器 -->
+    <div v-else class="flex">
+      <span v-if="hasLabel" :class="labelClass" :style="labelStyle">
+        <VbenRenderContent :content="displayLabel" />
+      </span>
+      <span
+        v-if="hasContent"
+        class="break-words text-foreground"
+        :style="contentStyle"
+      >
+        <VbenRenderContent :content="displayContent" />
+      </span>
+    </div>
+  </component>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -99,31 +127,3 @@ const labelClass = computed(() =>
   cn('mr-2 shrink-0 text-muted-foreground', props.colon && COLON_CLASS),
 );
 </script>
-
-<template>
-  <component :is="tag" :class="cellClass" :colspan="span">
-    <!-- 边框模式：每个单元格仅承载 label 或 content -->
-    <template v-if="bordered">
-      <span v-if="hasLabel" :style="labelStyle">
-        <VbenRenderContent :content="displayLabel" />
-      </span>
-      <span v-if="hasContent" :style="contentStyle">
-        <VbenRenderContent :content="displayContent" />
-      </span>
-    </template>
-
-    <!-- 非边框模式：label + content 容器 -->
-    <div v-else class="flex">
-      <span v-if="hasLabel" :class="labelClass" :style="labelStyle">
-        <VbenRenderContent :content="displayLabel" />
-      </span>
-      <span
-        v-if="hasContent"
-        class="break-words text-foreground"
-        :style="contentStyle"
-      >
-        <VbenRenderContent :content="displayContent" />
-      </span>
-    </div>
-  </component>
-</template>

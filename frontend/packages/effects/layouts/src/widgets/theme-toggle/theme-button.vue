@@ -1,3 +1,39 @@
+<template>
+  <VbenButton
+    :aria-label="theme"
+    :class="[`is-${theme}`]"
+    aria-live="polite"
+    class="theme-toggle cursor-pointer border-none bg-none hover:animate-[shrink_0.3s_ease-in-out]"
+    v-bind="bindProps"
+    @click.stop="toggleTheme"
+  >
+    <svg aria-hidden="true" height="24" viewBox="0 0 24 24" width="24">
+      <mask id="theme-toggle-moon" class="theme-toggle__moon">
+        <rect fill="white" height="100%" width="100%" x="0" y="0" />
+        <circle cx="40" cy="8" fill="black" r="11" />
+      </mask>
+      <circle
+        id="sun"
+        class="theme-toggle__sun fill-foreground/90"
+        cx="12"
+        cy="12"
+        mask="url(#theme-toggle-moon)"
+        r="11"
+      />
+      <g class="theme-toggle__sun-beams stroke-foreground/90 stroke-2">
+        <line x1="12" x2="12" y1="1" y2="3" />
+        <line x1="12" x2="12" y1="21" y2="23" />
+        <line x1="4.22" x2="5.64" y1="4.22" y2="5.64" />
+        <line x1="18.36" x2="19.78" y1="18.36" y2="19.78" />
+        <line x1="1" x2="3" y1="12" y2="12" />
+        <line x1="21" x2="23" y1="12" y2="12" />
+        <line x1="4.22" x2="5.64" y1="19.78" y2="18.36" />
+        <line x1="18.36" x2="19.78" y1="5.64" y2="4.22" />
+      </g>
+    </svg>
+  </VbenButton>
+</template>
+
 <script lang="ts" setup>
 import { computed, nextTick } from 'vue';
 
@@ -81,42 +117,6 @@ function toggleTheme(event: MouseEvent) {
   });
 }
 </script>
-
-<template>
-  <VbenButton
-    :aria-label="theme"
-    :class="[`is-${theme}`]"
-    aria-live="polite"
-    class="theme-toggle cursor-pointer border-none bg-none hover:animate-[shrink_0.3s_ease-in-out]"
-    v-bind="bindProps"
-    @click.stop="toggleTheme"
-  >
-    <svg aria-hidden="true" height="24" viewBox="0 0 24 24" width="24">
-      <mask id="theme-toggle-moon" class="theme-toggle__moon">
-        <rect fill="white" height="100%" width="100%" x="0" y="0" />
-        <circle cx="40" cy="8" fill="black" r="11" />
-      </mask>
-      <circle
-        id="sun"
-        class="theme-toggle__sun fill-foreground/90"
-        cx="12"
-        cy="12"
-        mask="url(#theme-toggle-moon)"
-        r="11"
-      />
-      <g class="theme-toggle__sun-beams stroke-foreground/90 stroke-2">
-        <line x1="12" x2="12" y1="1" y2="3" />
-        <line x1="12" x2="12" y1="21" y2="23" />
-        <line x1="4.22" x2="5.64" y1="4.22" y2="5.64" />
-        <line x1="18.36" x2="19.78" y1="18.36" y2="19.78" />
-        <line x1="1" x2="3" y1="12" y2="12" />
-        <line x1="21" x2="23" y1="12" y2="12" />
-        <line x1="4.22" x2="5.64" y1="19.78" y2="18.36" />
-        <line x1="18.36" x2="19.78" y1="5.64" y2="4.22" />
-      </g>
-    </svg>
-  </VbenButton>
-</template>
 
 <style scoped>
 @reference "@vben/tailwind-config/theme";

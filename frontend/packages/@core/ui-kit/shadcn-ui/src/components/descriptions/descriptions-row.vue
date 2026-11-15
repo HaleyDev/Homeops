@@ -1,38 +1,3 @@
-<script setup lang="ts">
-import type { CSSProperties } from 'vue';
-
-import type { DescriptionsSize, InternalDescriptionsItem } from './types';
-
-import DescriptionsCell from './descriptions-cell.vue';
-
-interface Props {
-  bordered?: boolean;
-  colon?: boolean;
-  contentStyle?: CSSProperties;
-  labelStyle?: CSSProperties;
-  row: InternalDescriptionsItem[];
-  size?: DescriptionsSize;
-  vertical?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  bordered: false,
-  colon: true,
-  contentStyle: undefined,
-  labelStyle: undefined,
-  size: 'middle',
-  vertical: false,
-});
-
-function mergeStyle(
-  base?: CSSProperties,
-  override?: CSSProperties,
-): CSSProperties | undefined {
-  if (!base && !override) return undefined;
-  return { ...base, ...override };
-}
-</script>
-
 <template>
   <!-- 垂直布局：标签独占一行，内容独占一行 -->
   <template v-if="vertical">
@@ -110,3 +75,38 @@ function mergeStyle(
     />
   </tr>
 </template>
+
+<script setup lang="ts">
+import type { CSSProperties } from 'vue';
+
+import type { DescriptionsSize, InternalDescriptionsItem } from './types';
+
+import DescriptionsCell from './descriptions-cell.vue';
+
+interface Props {
+  bordered?: boolean;
+  colon?: boolean;
+  contentStyle?: CSSProperties;
+  labelStyle?: CSSProperties;
+  row: InternalDescriptionsItem[];
+  size?: DescriptionsSize;
+  vertical?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  bordered: false,
+  colon: true,
+  contentStyle: undefined,
+  labelStyle: undefined,
+  size: 'middle',
+  vertical: false,
+});
+
+function mergeStyle(
+  base?: CSSProperties,
+  override?: CSSProperties,
+): CSSProperties | undefined {
+  if (!base && !override) return undefined;
+  return { ...base, ...override };
+}
+</script>

@@ -1,3 +1,12 @@
+<template>
+  <div
+    ref="barRef"
+    :class="toLeft && 'transition-width w-0! duration-300'"
+    :style="style"
+    class="absolute h-full bg-success"
+  ></div>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -29,12 +38,3 @@ defineExpose({
   },
 });
 </script>
-
-<template>
-  <div
-    ref="barRef"
-    :class="toLeft && 'transition-width w-0! duration-300'"
-    :style="style"
-    class="absolute h-full bg-success"
-  ></div>
-</template>

@@ -1,3 +1,27 @@
+<template>
+  <div class="flex w-full flex-col gap-4">
+    <div class="flex items-center gap-2">
+      <NumberField
+        v-model="modelValue"
+        :max="max"
+        :min="min"
+        :step="step"
+        class="w-full"
+      >
+        <NumberFieldContent>
+          <NumberFieldDecrement />
+          <NumberFieldInput />
+          <NumberFieldIncrement />
+        </NumberFieldContent>
+      </NumberField>
+      <span class="text-xs whitespace-nowrap text-muted-foreground">px</span>
+    </div>
+    <div class="text-xs text-muted-foreground">
+      {{ $t('preferences.theme.fontSizeTip') }}
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { watch } from 'vue';
 
@@ -36,27 +60,3 @@ watch(
   { immediate: true },
 );
 </script>
-
-<template>
-  <div class="flex w-full flex-col gap-4">
-    <div class="flex items-center gap-2">
-      <NumberField
-        v-model="modelValue"
-        :max="max"
-        :min="min"
-        :step="step"
-        class="w-full"
-      >
-        <NumberFieldContent>
-          <NumberFieldDecrement />
-          <NumberFieldInput />
-          <NumberFieldIncrement />
-        </NumberFieldContent>
-      </NumberField>
-      <span class="text-xs whitespace-nowrap text-muted-foreground">px</span>
-    </div>
-    <div class="text-xs text-muted-foreground">
-      {{ $t('preferences.theme.fontSizeTip') }}
-    </div>
-  </div>
-</template>

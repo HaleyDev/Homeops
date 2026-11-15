@@ -1,3 +1,12 @@
+<template>
+  <main ref="contentElement" :style="style" class="relative bg-background-deep">
+    <Slot :style="overlayStyle">
+      <slot name="overlay"></slot>
+    </Slot>
+    <slot></slot>
+  </main>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -54,12 +63,3 @@ const style = computed((): CSSProperties => {
   };
 });
 </script>
-
-<template>
-  <main ref="contentElement" :style="style" class="relative bg-background-deep">
-    <Slot :style="overlayStyle">
-      <slot name="overlay"></slot>
-    </Slot>
-    <slot></slot>
-  </main>
-</template>

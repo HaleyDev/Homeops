@@ -1,3 +1,6 @@
+<template>
+  <ProfileBaseSetting ref="profileBaseSettingRef" :form-schema="formSchema" />
+</template>
 <script setup lang="ts">
 import type { BasicOption } from '@vben/types';
 
@@ -60,6 +63,3 @@ onMounted(async () => {
   profileBaseSettingRef.value.getFormApi().setValues(data);
 });
 </script>
-<template>
-  <ProfileBaseSetting ref="profileBaseSettingRef" :form-schema="formSchema" />
-</template>

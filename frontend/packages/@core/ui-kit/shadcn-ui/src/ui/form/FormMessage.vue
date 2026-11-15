@@ -1,3 +1,14 @@
+<template>
+  <p
+    v-if="error"
+    :id="formMessageId"
+    data-slot="form-message"
+    :class="cn('text-destructive text-sm', props.class)"
+  >
+    {{ error }}
+  </p>
+</template>
+
 <script lang="ts" setup>
 import type { HTMLAttributes } from 'vue';
 
@@ -11,14 +22,3 @@ const props = defineProps<{
 
 const { error, formMessageId } = useFormField();
 </script>
-
-<template>
-  <p
-    v-if="error"
-    :id="formMessageId"
-    data-slot="form-message"
-    :class="cn('text-destructive text-sm', props.class)"
-  >
-    {{ error }}
-  </p>
-</template>

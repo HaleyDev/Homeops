@@ -1,3 +1,18 @@
+<template>
+  <div>
+    <VbenIconButton
+      @click="handleLogin"
+      :tooltip="$t('authentication.dingdingLogin')"
+      tooltip-side="top"
+    >
+      <SvgDingDingIcon />
+    </VbenIconButton>
+    <Modal>
+      <div id="dingding_qrcode_login_element"></div>
+    </Modal>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 
@@ -88,21 +103,6 @@ const handleLogin = () => {
   }
 };
 </script>
-
-<template>
-  <div>
-    <VbenIconButton
-      @click="handleLogin"
-      :tooltip="$t('authentication.dingdingLogin')"
-      tooltip-side="top"
-    >
-      <SvgDingDingIcon />
-    </VbenIconButton>
-    <Modal>
-      <div id="dingding_qrcode_login_element"></div>
-    </Modal>
-  </div>
-</template>
 
 <style>
 .dingding-qrcode-login-modal {

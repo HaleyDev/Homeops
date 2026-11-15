@@ -1,3 +1,12 @@
+<template>
+  <!-- eslint-disable vue/no-v-html -->
+  <div
+    :class="previewClass"
+    :style="{ minHeight: contentMinHeight }"
+    v-html="content"
+  ></div>
+</template>
+
 <script setup lang="ts">
 import type { TipTapPreviewProps } from './types';
 
@@ -23,12 +32,3 @@ const previewClass = computed(() =>
   ),
 );
 </script>
-
-<template>
-  <!-- eslint-disable vue/no-v-html -->
-  <div
-    :class="previewClass"
-    :style="{ minHeight: contentMinHeight }"
-    v-html="content"
-  ></div>
-</template>

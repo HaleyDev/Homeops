@@ -18,7 +18,7 @@ def ok(data=None, message='OK'):
     return Response({'code': 0, 'data': data, 'message': message})
 
 
-def fail(message='操作失败', code=1):
+def fail(message='Operation failed.', code=1):
     """业务失败响应（HTTP 200，前端直接展示 message）"""
     return Response({'code': code, 'data': None, 'message': message})
 
@@ -44,7 +44,7 @@ class LoginView(APIView):
     POST /api/auth/login
     请求体: {"username": "admin", "password": "xxx"}
     成功: {"code": 0, "data": {"accessToken": "..."}, "message": "OK"}
-    失败: {"code": 1, "data": null, "message": "用户名或密码错误"}
+    失败: {"code": 1, "data": null, "message": "Invalid username or password."}
     """
 
     # 登录接口本身不需要认证和权限
@@ -56,11 +56,11 @@ class LoginView(APIView):
         password = request.data.get('password')
 
         if not username or not password:
-            return fail('用户名和密码不能为空')
+            return fail('Username and password are required.')
 
         user = authenticate(request, username=username, password=password)
         if user is None:
-            return fail('用户名或密码错误')
+            return fail('Invalid username or password.')
 
         refresh = RefreshToken.for_user(user)
         response = ok({'accessToken': str(refresh.access_token)})
@@ -146,7 +146,7 @@ class CodesView(APIView):
             username=request.user.username,
             is_superuser=request.user.is_superuser,
         )
-        logger.debug('codes_empty_response', reason='暂无权限码体系')
+        logger.debug('codes_empty_response', reason='permission code system is not configured')
         return ok([])
 
 

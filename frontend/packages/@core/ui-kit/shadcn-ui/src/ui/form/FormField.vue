@@ -1,3 +1,7 @@
+<template>
+  <slot></slot>
+</template>
+
 <script setup lang="ts">
 import { provide, toRefs } from 'vue';
 
@@ -29,7 +33,3 @@ provide(FORM_FIELD_INJECTION_KEY, {
   valid,
 });
 </script>
-
-<template>
-  <slot></slot>
-</template>

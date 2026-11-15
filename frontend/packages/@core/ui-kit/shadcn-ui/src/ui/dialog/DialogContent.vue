@@ -1,3 +1,52 @@
+<template>
+  <DialogPortal :to="appendTo">
+    <Transition name="fade">
+      <DialogOverlay
+        v-if="open && modal"
+        :overlay-blur="overlayBlur"
+        :position="position"
+        :z-index="zIndex"
+        @click="() => emits('close')"
+      />
+    </Transition>
+    <DialogContent
+      ref="contentRef"
+      :style="{ ...(zIndex ? { zIndex } : {}), position }"
+      data-slot="dialog-content"
+      @animationend="handleAnimationEvent"
+      @animationcancel="handleAnimationEvent"
+      v-bind="forwarded"
+      :class="
+        cn(
+          'z-popup bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 w-full p-6 shadow-lg outline-hidden sm:rounded-xl',
+          {
+            'data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%]':
+              animationType === 'slide',
+          },
+          props.class,
+        )
+      "
+    >
+      <slot></slot>
+
+      <DialogClose
+        v-if="showCloseButton"
+        :disabled="closeDisabled"
+        data-slot="dialog-close"
+        :class="
+          cn(
+            'flex-center text-foreground/80 hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-3 right-3 h-6 w-6 rounded-full px-1 text-lg opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none',
+            props.closeClass,
+          )
+        "
+        @click="() => emits('close')"
+      >
+        <X class="size-4" />
+      </DialogClose>
+    </DialogContent>
+  </DialogPortal>
+</template>
+
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from 'reka-ui';
 
@@ -94,52 +143,3 @@ defineExpose({
   getContentRef: () => contentRef.value,
 });
 </script>
-
-<template>
-  <DialogPortal :to="appendTo">
-    <Transition name="fade">
-      <DialogOverlay
-        v-if="open && modal"
-        :overlay-blur="overlayBlur"
-        :position="position"
-        :z-index="zIndex"
-        @click="() => emits('close')"
-      />
-    </Transition>
-    <DialogContent
-      ref="contentRef"
-      :style="{ ...(zIndex ? { zIndex } : {}), position }"
-      data-slot="dialog-content"
-      @animationend="handleAnimationEvent"
-      @animationcancel="handleAnimationEvent"
-      v-bind="forwarded"
-      :class="
-        cn(
-          'z-popup bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 w-full p-6 shadow-lg outline-hidden sm:rounded-xl',
-          {
-            'data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%]':
-              animationType === 'slide',
-          },
-          props.class,
-        )
-      "
-    >
-      <slot></slot>
-
-      <DialogClose
-        v-if="showCloseButton"
-        :disabled="closeDisabled"
-        data-slot="dialog-close"
-        :class="
-          cn(
-            'flex-center text-foreground/80 hover:bg-accent hover:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-3 right-3 h-6 w-6 rounded-full px-1 text-lg opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none',
-            props.closeClass,
-          )
-        "
-        @click="() => emits('close')"
-      >
-        <X class="size-4" />
-      </DialogClose>
-    </DialogContent>
-  </DialogPortal>
-</template>

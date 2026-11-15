@@ -1,3 +1,8 @@
+<template>
+  <span :style="{ color }">
+    {{ value }}
+  </span>
+</template>
 <script lang="ts" setup>
 import { computed, onMounted, ref, unref, watch, watchEffect } from 'vue';
 
@@ -121,8 +126,3 @@ function formatNumber(num: number | string) {
 
 defineExpose({ reset });
 </script>
-<template>
-  <span :style="{ color }">
-    {{ value }}
-  </span>
-</template>
