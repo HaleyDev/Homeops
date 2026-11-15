@@ -1,30 +1,13 @@
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+
+from backend.api import ApiResponseMixin, ok
 
 from .models import LLMModel, LLMProvider, ModelType
 from .permissions import IsSuperuser
 from .serializers import LLMModelSerializer, LLMProviderSerializer, SelectionSerializer
 from .services import SelectionError, clear_selection, select_model
-
-
-def ok(data=None, message="OK", status_code=status.HTTP_200_OK):
-    return Response(
-        {"code": 0, "data": data, "message": message},
-        status=status_code,
-    )
-
-
-class ApiResponseMixin:
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        if 200 <= response.status_code < 300 and not (
-            isinstance(response.data, dict) and "code" in response.data
-        ):
-            response.data = {"code": 0, "data": response.data, "message": "OK"}
-        return response
 
 
 class LLMProviderViewSet(ApiResponseMixin, ModelViewSet):

@@ -1,7 +1,7 @@
 <template>
   <div class="p-5">
     <div class="mb-6">
-      <h1 class="text-2xl font-semibold">大模型配置</h1>
+      <h1 class="text-2xl font-semibold">模型供应商配置</h1>
       <p class="text-muted-foreground mt-2 text-sm">
         管理全局供应商和模型，配置变更从下一轮对话开始生效
       </p>

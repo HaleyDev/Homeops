@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'accounts',
     'ai_assistant',
     'system_setting',
+    'knowledge',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -217,6 +218,16 @@ CELERY_TIME_ZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_RESULT_EXPIRES = timedelta(days=1)
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+
+# 知识库原始文件：大文件由 Django 写入临时文件，业务层再流式校验和落盘。
+KNOWLEDGE_UPLOAD_ROOT = os.environ.get(
+    'KNOWLEDGE_UPLOAD_ROOT', str(BASE_DIR / 'data' / 'knowledge')
+)
+KNOWLEDGE_MAX_FILE_SIZE = int(
+    os.environ.get('KNOWLEDGE_MAX_FILE_SIZE', 20 * 1024 * 1024)
+)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024
 
 
 # Static files (CSS, JavaScript, Images)

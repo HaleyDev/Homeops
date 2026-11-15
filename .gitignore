@@ -2,6 +2,8 @@
 docker/mysql/*
 docker/postgres/data/*
 docker/redis/data/*
+docker/knowledge/*
+backend/data/knowledge/*
 
 /.env
 

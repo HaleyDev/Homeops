@@ -16,5 +16,7 @@
     "workspace": "Workspace"
   },
   "aiAssistant": "AI Assistant",
-  "systemSetting": "System Settings"
+  "systemSetting": "System Settings",
+  "modelProviderConfig": "Model Provider Configuration",
+  "knowledgeBaseSetting": "Knowledge Base Settings"
 }
