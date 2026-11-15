@@ -1,57 +1,3 @@
-<script setup lang="ts">
-import type { ToolbarType } from './types';
-
-import { computed } from 'vue';
-
-import { preferences, usePreferences } from '@vben/preferences';
-
-import { Copyright } from '../basic/copyright';
-import AuthenticationFormView from './form.vue';
-import SloganIcon from './icons/slogan.vue';
-import Toolbar from './toolbar.vue';
-
-interface Props {
-  appName?: string;
-  logo?: string;
-  logoDark?: string;
-  pageTitle?: string;
-  pageDescription?: string;
-  sloganImage?: string;
-  toolbar?: boolean;
-  copyright?: boolean;
-  toolbarList?: ToolbarType[];
-  clickLogo?: () => void;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  appName: '',
-  copyright: true,
-  logo: '',
-  logoDark: '',
-  pageDescription: '',
-  pageTitle: '',
-  sloganImage: '',
-  toolbar: true,
-  toolbarList: () => ['color', 'language', 'layout', 'theme'],
-  clickLogo: () => {},
-});
-
-const { authPanelCenter, authPanelLeft, authPanelRight, isDark } =
-  usePreferences();
-
-/**
- * @zh_CN 根据主题选择合适的 logo 图标
- */
-const logoSrc = computed(() => {
-  // 如果是暗色主题且提供了 logoDark，则使用暗色主题的 logo
-  if (isDark.value && props.logoDark) {
-    return props.logoDark;
-  }
-  // 否则使用默认的 logo
-  return props.logo;
-});
-</script>
-
 <template>
   <div
     :class="[isDark ? 'dark' : '']"
@@ -170,6 +116,60 @@ const logoSrc = computed(() => {
     </AuthenticationFormView>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { ToolbarType } from './types';
+
+import { computed } from 'vue';
+
+import { preferences, usePreferences } from '@vben/preferences';
+
+import { Copyright } from '../basic/copyright';
+import AuthenticationFormView from './form.vue';
+import SloganIcon from './icons/slogan.vue';
+import Toolbar from './toolbar.vue';
+
+interface Props {
+  appName?: string;
+  logo?: string;
+  logoDark?: string;
+  pageTitle?: string;
+  pageDescription?: string;
+  sloganImage?: string;
+  toolbar?: boolean;
+  copyright?: boolean;
+  toolbarList?: ToolbarType[];
+  clickLogo?: () => void;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  appName: '',
+  copyright: true,
+  logo: '',
+  logoDark: '',
+  pageDescription: '',
+  pageTitle: '',
+  sloganImage: '',
+  toolbar: true,
+  toolbarList: () => ['color', 'language', 'layout', 'theme'],
+  clickLogo: () => {},
+});
+
+const { authPanelCenter, authPanelLeft, authPanelRight, isDark } =
+  usePreferences();
+
+/**
+ * @zh_CN 根据主题选择合适的 logo 图标
+ */
+const logoSrc = computed(() => {
+  // 如果是暗色主题且提供了 logoDark，则使用暗色主题的 logo
+  if (isDark.value && props.logoDark) {
+    return props.logoDark;
+  }
+  // 否则使用默认的 logo
+  return props.logo;
+});
+</script>
 
 <style scoped>
 .login-background {

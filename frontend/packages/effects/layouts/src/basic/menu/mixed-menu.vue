@@ -1,3 +1,15 @@
+<template>
+  <NormalMenu
+    :active-path="activePath"
+    :collapse="collapse"
+    :menus="menus"
+    :rounded="rounded"
+    :theme="theme"
+    @enter="(menu) => emit('enter', menu)"
+    @select="(menu) => emit('select', menu)"
+  />
+</template>
+
 <script lang="ts" setup>
 import type { MenuRecordRaw } from '@vben/types';
 
@@ -32,15 +44,3 @@ onBeforeMount(() => {
   }
 });
 </script>
-
-<template>
-  <NormalMenu
-    :active-path="activePath"
-    :collapse="collapse"
-    :menus="menus"
-    :rounded="rounded"
-    :theme="theme"
-    @enter="(menu) => emit('enter', menu)"
-    @select="(menu) => emit('select', menu)"
-  />
-</template>

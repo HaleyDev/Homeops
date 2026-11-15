@@ -1,3 +1,38 @@
+<template>
+  <Teleport defer :to="appendTo">
+    <Transition name="fade">
+      <SheetOverlay
+        v-if="open && modal"
+        :style="{
+          ...(zIndex ? { zIndex } : {}),
+          position,
+          backdropFilter:
+            overlayBlur && overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+        }"
+      />
+    </Transition>
+    <DialogContent
+      ref="contentRef"
+      :class="cn('z-popup', sheetVariants({ side }), props.class)"
+      :style="{
+        ...(zIndex ? { zIndex } : {}),
+        position,
+      }"
+      @animationend="handleAnimationEvent"
+      @animationcancel="handleAnimationEvent"
+      v-bind="{ ...forwarded, ...$attrs }"
+    >
+      <slot></slot>
+
+      <!-- <DialogClose
+        class="data-[state=open]:bg-secondary absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none"
+      >
+        <Cross2Icon class="h-5 w-" />
+      </DialogClose> -->
+    </DialogContent>
+  </Teleport>
+</template>
+
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from 'reka-ui';
 
@@ -69,38 +104,3 @@ const { handleAnimationEvent } = useDialogStateEvents({
   onOpened: () => emits('opened'),
 });
 </script>
-
-<template>
-  <Teleport defer :to="appendTo">
-    <Transition name="fade">
-      <SheetOverlay
-        v-if="open && modal"
-        :style="{
-          ...(zIndex ? { zIndex } : {}),
-          position,
-          backdropFilter:
-            overlayBlur && overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
-        }"
-      />
-    </Transition>
-    <DialogContent
-      ref="contentRef"
-      :class="cn('z-popup', sheetVariants({ side }), props.class)"
-      :style="{
-        ...(zIndex ? { zIndex } : {}),
-        position,
-      }"
-      @animationend="handleAnimationEvent"
-      @animationcancel="handleAnimationEvent"
-      v-bind="{ ...forwarded, ...$attrs }"
-    >
-      <slot></slot>
-
-      <!-- <DialogClose
-        class="data-[state=open]:bg-secondary absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none"
-      >
-        <Cross2Icon class="h-5 w-" />
-      </DialogClose> -->
-    </DialogContent>
-  </Teleport>
-</template>

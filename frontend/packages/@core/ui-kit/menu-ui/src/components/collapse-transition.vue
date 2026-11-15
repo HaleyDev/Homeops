@@ -1,3 +1,9 @@
+<template>
+  <transition name="collapse-transition" v-on="on">
+    <slot></slot>
+  </transition>
+</template>
+
 <script lang="ts" setup>
 import type { RendererElement } from 'vue';
 
@@ -88,9 +94,3 @@ const on = {
   },
 };
 </script>
-
-<template>
-  <transition name="collapse-transition" v-on="on">
-    <slot></slot>
-  </transition>
-</template>

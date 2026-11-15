@@ -1,26 +1,3 @@
-<script setup lang="ts">
-import { useAppConfig } from '@vben/hooks';
-import {
-  SvgGithubIcon,
-  SvgGoogleIcon,
-  SvgQQChatIcon,
-  SvgWeChatIcon,
-} from '@vben/icons';
-import { $t } from '@vben/locales';
-
-import { VbenIconButton } from '@vben-core/shadcn-ui';
-
-import DingdingLogin from './dingding-login.vue';
-
-defineOptions({
-  name: 'ThirdPartyLogin',
-});
-
-const {
-  auth: { dingding: dingdingAuthConfig },
-} = useAppConfig(import.meta.env, import.meta.env.PROD);
-</script>
-
 <template>
   <div class="w-full sm:mx-auto md:max-w-md">
     <div class="mt-4 flex items-center justify-between">
@@ -69,3 +46,26 @@ const {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useAppConfig } from '@vben/hooks';
+import {
+  SvgGithubIcon,
+  SvgGoogleIcon,
+  SvgQQChatIcon,
+  SvgWeChatIcon,
+} from '@vben/icons';
+import { $t } from '@vben/locales';
+
+import { VbenIconButton } from '@vben-core/shadcn-ui';
+
+import DingdingLogin from './dingding-login.vue';
+
+defineOptions({
+  name: 'ThirdPartyLogin',
+});
+
+const {
+  auth: { dingding: dingdingAuthConfig },
+} = useAppConfig(import.meta.env, import.meta.env.PROD);
+</script>

@@ -1,3 +1,9 @@
+<template>
+  <div data-slot="form-item" :class="cn(props.class)">
+    <slot></slot>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import type { HTMLAttributes } from 'vue';
 
@@ -16,9 +22,3 @@ const props = defineProps<{
 const id = useId();
 provide(FORM_ITEM_INJECTION_KEY, id);
 </script>
-
-<template>
-  <div data-slot="form-item" :class="cn(props.class)">
-    <slot></slot>
-  </div>
-</template>

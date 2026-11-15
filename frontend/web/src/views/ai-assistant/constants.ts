@@ -1,0 +1,38 @@
+/**
+ * AI 助手页面常量与默认数据。
+ *
+ * 对话已对接真实接口 POST /api/ai/chat/(见 src/api/ai);
+ * 会话列表/消息历史见 src/api/ai(对接后端 ai_assistant 模块)。
+ */
+import type { ChatMessage } from './types';
+
+/** AI 头像(内联 SVG,无外网依赖) */
+export const AI_AVATAR = buildSvgAvatar('#3b82f6', '🤖');
+
+/** 用户头像(内联 SVG,无外网依赖) */
+export const USER_AVATAR = buildSvgAvatar('#10b981', '🧑');
+
+/** 页面初始欢迎消息 */
+export function createWelcomeMessage(): ChatMessage {
+  return {
+    key: 'msg-welcome',
+    uiKey: 'msg-welcome',
+    role: 'ai',
+    placement: 'start',
+    variant: 'filled',
+    shape: 'round',
+    avatar: AI_AVATAR,
+    content: '你好,我是 AI 助手。输入问题即可开始对话。',
+    thinking: '',
+    toolCalls: [],
+    processExpanded: false,
+    streaming: false,
+    loading: false,
+  };
+}
+
+/** 生成内联 SVG 头像(data URI,避免外链图片依赖) */
+function buildSvgAvatar(bg: string, emoji: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="${bg}"/><text x="24" y="33" font-size="22" text-anchor="middle">${emoji}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}

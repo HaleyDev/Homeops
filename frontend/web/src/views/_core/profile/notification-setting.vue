@@ -1,3 +1,6 @@
+<template>
+  <ProfileNotificationSetting :form-schema="formSchema" />
+</template>
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -26,6 +29,3 @@ const formSchema = computed(() => {
   ];
 });
 </script>
-<template>
-  <ProfileNotificationSetting :form-schema="formSchema" />
-</template>

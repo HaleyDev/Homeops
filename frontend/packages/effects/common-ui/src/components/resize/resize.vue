@@ -1,3 +1,31 @@
+<template>
+  <div
+    :class="`${active || isActive ? 'active' : 'inactive'} ${contentClass ? contentClass : ''}`"
+    :style="positionStyle"
+    class="resize"
+    @mousedown="bodyDown($event as TouchEvent & MouseEvent)"
+    @touchend="up"
+    @touchstart="bodyDown($event as TouchEvent & MouseEvent)"
+  >
+    <div ref="container" :style="sizeStyle" class="content-container">
+      <slot></slot>
+    </div>
+    <div
+      v-for="(stick, index) of sticks"
+      :key="index"
+      :class="[`resize-stick-${stick}`, isResizable ? '' : 'not-resizable']"
+      :style="stickStyles(stick)"
+      class="resize-stick"
+      @mousedown.stop.prevent="
+        stickDown(stick, $event as TouchEvent & MouseEvent)
+      "
+      @touchstart.stop.prevent="
+        stickDown(stick, $event as TouchEvent & MouseEvent)
+      "
+    ></div>
+  </div>
+</template>
+
 <script lang="ts" setup>
 /**
  * This components is refactored from vue-drag-resize: https://github.com/kirillmurashov/vue-drag-resize
@@ -1177,34 +1205,6 @@ watch(
   },
 );
 </script>
-
-<template>
-  <div
-    :class="`${active || isActive ? 'active' : 'inactive'} ${contentClass ? contentClass : ''}`"
-    :style="positionStyle"
-    class="resize"
-    @mousedown="bodyDown($event as TouchEvent & MouseEvent)"
-    @touchend="up"
-    @touchstart="bodyDown($event as TouchEvent & MouseEvent)"
-  >
-    <div ref="container" :style="sizeStyle" class="content-container">
-      <slot></slot>
-    </div>
-    <div
-      v-for="(stick, index) of sticks"
-      :key="index"
-      :class="[`resize-stick-${stick}`, isResizable ? '' : 'not-resizable']"
-      :style="stickStyles(stick)"
-      class="resize-stick"
-      @mousedown.stop.prevent="
-        stickDown(stick, $event as TouchEvent & MouseEvent)
-      "
-      @touchstart.stop.prevent="
-        stickDown(stick, $event as TouchEvent & MouseEvent)
-      "
-    ></div>
-  </div>
-</template>
 
 <style lang="css" scoped>
 .resize {

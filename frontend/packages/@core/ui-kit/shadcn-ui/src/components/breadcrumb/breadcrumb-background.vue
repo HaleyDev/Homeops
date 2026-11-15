@@ -1,22 +1,3 @@
-<script lang="ts" setup>
-import type { BreadcrumbProps } from './types';
-
-import { VbenIcon } from '../icon';
-
-interface Props extends BreadcrumbProps {}
-
-defineOptions({ name: 'Breadcrumb' });
-const { breadcrumbs, showIcon } = defineProps<Props>();
-
-const emit = defineEmits<{ select: [string] }>();
-
-function handleClick(index: number, path?: string) {
-  if (!path || index === breadcrumbs.length - 1) {
-    return;
-  }
-  emit('select', path);
-}
-</script>
 <template>
   <ul class="flex">
     <TransitionGroup name="breadcrumb-transition">
@@ -49,6 +30,25 @@ function handleClick(index: number, path?: string) {
     </TransitionGroup>
   </ul>
 </template>
+<script lang="ts" setup>
+import type { BreadcrumbProps } from './types';
+
+import { VbenIcon } from '../icon';
+
+interface Props extends BreadcrumbProps {}
+
+defineOptions({ name: 'Breadcrumb' });
+const { breadcrumbs, showIcon } = defineProps<Props>();
+
+const emit = defineEmits<{ select: [string] }>();
+
+function handleClick(index: number, path?: string) {
+  if (!path || index === breadcrumbs.length - 1) {
+    return;
+  }
+  emit('select', path);
+}
+</script>
 <style scoped>
 @reference "@vben/tailwind-config/theme";
 

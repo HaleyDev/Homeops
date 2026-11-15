@@ -1,3 +1,51 @@
+<template>
+  <div
+    ref="wrapperRef"
+    :class="
+      cn(
+        'relative flex h-10 w-full items-center overflow-hidden rounded-md border border-border bg-background-deep text-center',
+        props.class,
+      )
+    "
+    :style="wrapperStyle"
+    @mouseleave="handleDragOver"
+    @mousemove="handleDragMoving"
+    @mouseup="handleDragOver"
+    @touchend="handleDragOver"
+    @touchmove="handleDragMoving"
+  >
+    <SliderCaptchaBar
+      ref="barRef"
+      :bar-style="barStyle"
+      :to-left="state.toLeft"
+    />
+    <SliderCaptchaContent
+      ref="contentRef"
+      :content-style="contentStyle"
+      :is-passing="state.isPassing"
+      :success-text="successText || $t('ui.captcha.sliderSuccessText')"
+      :text="text || $t('ui.captcha.sliderDefaultText')"
+    >
+      <template v-if="$slots.text" #text>
+        <slot :is-passing="state.isPassing" name="text"></slot>
+      </template>
+    </SliderCaptchaContent>
+
+    <SliderCaptchaAction
+      ref="actionRef"
+      :action-style="actionStyle"
+      :is-passing="state.isPassing"
+      :to-left="state.toLeft"
+      @mousedown="handleDragStart"
+      @touchstart="handleDragStart"
+    >
+      <template v-if="$slots.actionIcon" #icon>
+        <slot :is-passing="state.isPassing" name="actionIcon"></slot>
+      </template>
+    </SliderCaptchaAction>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type {
   CaptchaVerifyPassingData,
@@ -204,51 +252,3 @@ function resume() {
   }, 300);
 }
 </script>
-
-<template>
-  <div
-    ref="wrapperRef"
-    :class="
-      cn(
-        'relative flex h-10 w-full items-center overflow-hidden rounded-md border border-border bg-background-deep text-center',
-        props.class,
-      )
-    "
-    :style="wrapperStyle"
-    @mouseleave="handleDragOver"
-    @mousemove="handleDragMoving"
-    @mouseup="handleDragOver"
-    @touchend="handleDragOver"
-    @touchmove="handleDragMoving"
-  >
-    <SliderCaptchaBar
-      ref="barRef"
-      :bar-style="barStyle"
-      :to-left="state.toLeft"
-    />
-    <SliderCaptchaContent
-      ref="contentRef"
-      :content-style="contentStyle"
-      :is-passing="state.isPassing"
-      :success-text="successText || $t('ui.captcha.sliderSuccessText')"
-      :text="text || $t('ui.captcha.sliderDefaultText')"
-    >
-      <template v-if="$slots.text" #text>
-        <slot :is-passing="state.isPassing" name="text"></slot>
-      </template>
-    </SliderCaptchaContent>
-
-    <SliderCaptchaAction
-      ref="actionRef"
-      :action-style="actionStyle"
-      :is-passing="state.isPassing"
-      :to-left="state.toLeft"
-      @mousedown="handleDragStart"
-      @touchstart="handleDragStart"
-    >
-      <template v-if="$slots.actionIcon" #icon>
-        <slot :is-passing="state.isPassing" name="actionIcon"></slot>
-      </template>
-    </SliderCaptchaAction>
-  </div>
-</template>

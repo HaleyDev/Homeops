@@ -1,3 +1,13 @@
+<template>
+  <TabsContent
+    data-slot="tabs-content"
+    :class="cn('flex-1 outline-none', props.class)"
+    v-bind="delegatedProps"
+  >
+    <slot></slot>
+  </TabsContent>
+</template>
+
 <script setup lang="ts">
 import type { TabsContentProps } from 'reka-ui';
 
@@ -14,13 +24,3 @@ const props = defineProps<
 
 const delegatedProps = reactiveOmit(props, 'class');
 </script>
-
-<template>
-  <TabsContent
-    data-slot="tabs-content"
-    :class="cn('flex-1 outline-none', props.class)"
-    v-bind="delegatedProps"
-  >
-    <slot></slot>
-  </TabsContent>
-</template>

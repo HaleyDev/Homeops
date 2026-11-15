@@ -1,3 +1,7 @@
+<template>
+  <div />
+</template>
+
 <script setup lang="ts">
 import { useVbenDrawer } from '../../use-drawer';
 
@@ -10,7 +14,3 @@ const [, drawerApi] = useVbenDrawer<TypedDrawerData | null>();
 
 defineExpose({ drawerApi });
 </script>
-
-<template>
-  <div />
-</template>

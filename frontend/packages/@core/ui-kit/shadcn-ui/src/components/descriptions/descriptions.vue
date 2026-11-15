@@ -1,3 +1,32 @@
+<template>
+  <div :class="cn('w-full', props.class)">
+    <div v-if="hasHeader" class="mb-5 flex items-center justify-between gap-4">
+      <div class="text-base font-semibold text-foreground">
+        <slot name="title">{{ title }}</slot>
+      </div>
+      <div class="text-foreground">
+        <slot name="extra">{{ extra }}</slot>
+      </div>
+    </div>
+
+    <table :class="tableClass">
+      <tbody>
+        <DescriptionsRow
+          v-for="(row, index) in rows"
+          :key="index"
+          :row="row"
+          :vertical="layout === 'vertical'"
+          :bordered="bordered"
+          :colon="colon"
+          :size="size"
+          :label-style="labelStyle"
+          :content-style="contentStyle"
+        />
+      </tbody>
+    </table>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { VNode } from 'vue';
 
@@ -60,32 +89,3 @@ const tableClass = computed(() =>
   ),
 );
 </script>
-
-<template>
-  <div :class="cn('w-full', props.class)">
-    <div v-if="hasHeader" class="mb-5 flex items-center justify-between gap-4">
-      <div class="text-base font-semibold text-foreground">
-        <slot name="title">{{ title }}</slot>
-      </div>
-      <div class="text-foreground">
-        <slot name="extra">{{ extra }}</slot>
-      </div>
-    </div>
-
-    <table :class="tableClass">
-      <tbody>
-        <DescriptionsRow
-          v-for="(row, index) in rows"
-          :key="index"
-          :row="row"
-          :vertical="layout === 'vertical'"
-          :bordered="bordered"
-          :colon="colon"
-          :size="size"
-          :label-style="labelStyle"
-          :content-style="contentStyle"
-        />
-      </tbody>
-    </table>
-  </div>
-</template>

@@ -1,3 +1,55 @@
+<template>
+  <div class="space-y-1">
+    <div ref="listRef" class="space-y-1">
+      <div
+        v-for="item in sortableList"
+        :key="item.key"
+        :data-key="item.key"
+        class="bg-accent flex items-center rounded-md pl-2"
+      >
+        <GripVertical
+          class="drag-handle size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+        />
+        <SelectItem
+          :items="item.positionItems ?? positionItems"
+          :model-value="item.position"
+          class="min-w-0 flex-1"
+          @update:model-value="
+            (v: string | undefined) => setPosition(item.key, v)
+          "
+        >
+          <span class="truncate">{{ item.label }}</span>
+        </SelectItem>
+      </div>
+    </div>
+    <div v-if="hiddenList.length > 0" class="pt-2">
+      <div class="text-muted-foreground mb-1 text-xs font-medium">
+        {{ $t('preferences.widget.hidden') }}
+      </div>
+      <div
+        v-for="item in hiddenList"
+        :key="item.key"
+        class="flex items-center rounded-md"
+      >
+        <SelectItem
+          :items="item.positionItems ?? positionItems"
+          :model-value="item.position"
+          class="min-w-0 flex-1"
+          @update:model-value="
+            (v: string | undefined) => setPosition(item.key, v)
+          "
+        >
+          <span
+            class="text-muted-foreground truncate line-through decoration-dotted"
+          >
+            {{ item.label }}
+          </span>
+        </SelectItem>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { SelectOption } from '@vben/types';
 
@@ -84,55 +136,3 @@ function setPosition(key: string, value: string | undefined) {
   });
 }
 </script>
-
-<template>
-  <div class="space-y-1">
-    <div ref="listRef" class="space-y-1">
-      <div
-        v-for="item in sortableList"
-        :key="item.key"
-        :data-key="item.key"
-        class="bg-accent flex items-center rounded-md pl-2"
-      >
-        <GripVertical
-          class="drag-handle size-4 shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-        />
-        <SelectItem
-          :items="item.positionItems ?? positionItems"
-          :model-value="item.position"
-          class="min-w-0 flex-1"
-          @update:model-value="
-            (v: string | undefined) => setPosition(item.key, v)
-          "
-        >
-          <span class="truncate">{{ item.label }}</span>
-        </SelectItem>
-      </div>
-    </div>
-    <div v-if="hiddenList.length > 0" class="pt-2">
-      <div class="text-muted-foreground mb-1 text-xs font-medium">
-        {{ $t('preferences.widget.hidden') }}
-      </div>
-      <div
-        v-for="item in hiddenList"
-        :key="item.key"
-        class="flex items-center rounded-md"
-      >
-        <SelectItem
-          :items="item.positionItems ?? positionItems"
-          :model-value="item.position"
-          class="min-w-0 flex-1"
-          @update:model-value="
-            (v: string | undefined) => setPosition(item.key, v)
-          "
-        >
-          <span
-            class="text-muted-foreground truncate line-through decoration-dotted"
-          >
-            {{ item.label }}
-          </span>
-        </SelectItem>
-      </div>
-    </div>
-  </div>
-</template>

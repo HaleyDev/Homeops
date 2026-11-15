@@ -1,13 +1,3 @@
-<script lang="ts" setup>
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-const props = defineProps<{
-  class?: HTMLAttributes['class'];
-}>();
-</script>
-
 <template>
   <span
     data-slot="breadcrumb-page"
@@ -19,3 +9,13 @@ const props = defineProps<{
     <slot></slot>
   </span>
 </template>
+
+<script lang="ts" setup>
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+const props = defineProps<{
+  class?: HTMLAttributes['class'];
+}>();
+</script>

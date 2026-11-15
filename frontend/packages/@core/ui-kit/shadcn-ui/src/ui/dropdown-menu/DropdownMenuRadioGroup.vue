@@ -1,3 +1,12 @@
+<template>
+  <DropdownMenuRadioGroup
+    data-slot="dropdown-menu-radio-group"
+    v-bind="forwarded"
+  >
+    <slot></slot>
+  </DropdownMenuRadioGroup>
+</template>
+
 <script setup lang="ts">
 import type {
   DropdownMenuRadioGroupEmits,
@@ -11,12 +20,3 @@ const emits = defineEmits<DropdownMenuRadioGroupEmits>();
 
 const forwarded = useForwardPropsEmits(props, emits);
 </script>
-
-<template>
-  <DropdownMenuRadioGroup
-    data-slot="dropdown-menu-radio-group"
-    v-bind="forwarded"
-  >
-    <slot></slot>
-  </DropdownMenuRadioGroup>
-</template>

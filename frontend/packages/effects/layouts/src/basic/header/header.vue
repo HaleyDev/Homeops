@@ -1,3 +1,139 @@
+<template>
+  <LockModal
+    v-if="showLockInHeader"
+    :avatar="avatar"
+    :text="text"
+    @submit="handleSubmitLock"
+  />
+
+  <LogoutModal
+    v-if="showLogoutInHeader"
+    :cancel-text="$t('common.cancel')"
+    :confirm-text="$t('common.confirm')"
+    :fullscreen-button="false"
+    :title="$t('common.prompt')"
+    centered
+    content-class="px-8 min-h-10"
+    footer-class="border-none mb-3 mr-3"
+    header-class="border-none"
+  >
+    {{ $t('ui.widgets.logoutTip') }}
+  </LogoutModal>
+
+  <template
+    v-for="slot in leftSlots.filter((item) => item.index < REFERENCE_VALUE)"
+    :key="slot.name"
+  >
+    <slot :name="slot.name">
+      <template v-if="slot.name === 'refresh'">
+        <VbenIconButton class="my-0 mr-1 rounded-md" @click="refresh">
+          <RotateCw class="size-4" />
+        </VbenIconButton>
+      </template>
+    </slot>
+  </template>
+  <div class="flex-center hidden lg:block">
+    <slot name="breadcrumb"></slot>
+  </div>
+  <template
+    v-for="slot in leftSlots.filter((item) => item.index > REFERENCE_VALUE)"
+    :key="slot.name"
+  >
+    <slot :name="slot.name"></slot>
+  </template>
+  <div
+    :class="`menu-align-${preferences.header.menuAlign}`"
+    class="flex h-full min-w-0 flex-1 items-center"
+  >
+    <slot name="menu"></slot>
+  </div>
+  <div class="flex h-full min-w-0 shrink-0 items-center">
+    <template v-for="slot in rightSlots" :key="slot.name">
+      <slot :name="slot.name">
+        <template v-if="slot.name === 'global-search'">
+          <GlobalSearch
+            :enable-shortcut-key="globalSearchShortcutKey"
+            :menus="accessStore.accessMenus"
+            class="mr-1 sm:mr-4"
+          />
+        </template>
+
+        <template v-else-if="slot.name === 'preferences'">
+          <VbenTooltip side="bottom">
+            <template #trigger>
+              <PreferencesButton
+                class="mr-1"
+                @clear-preferences-and-logout="clearPreferencesAndLogout"
+              />
+            </template>
+            {{ $t('preferences.title') }}
+          </VbenTooltip>
+        </template>
+        <template v-else-if="slot.name === 'theme-toggle'">
+          <VbenTooltip side="bottom">
+            <template #trigger>
+              <ThemeToggle class="mt-0.5 mr-1" />
+            </template>
+            {{ $t('preferences.theme.title') }}
+          </VbenTooltip>
+        </template>
+        <template v-else-if="slot.name === 'language-toggle'">
+          <VbenTooltip side="bottom">
+            <template #trigger>
+              <LanguageToggle class="mr-1" />
+            </template>
+            {{ $t('preferences.widget.languageToggle') }}
+          </VbenTooltip>
+        </template>
+        <template v-else-if="slot.name === 'fullscreen'">
+          <VbenFullScreen
+            class="mr-1"
+            :tooltip="$t('preferences.widget.fullscreen')"
+          />
+        </template>
+        <template v-else-if="slot.name === 'timezone'">
+          <TimezoneButton class="mt-0.5 mr-1" />
+        </template>
+        <template v-else-if="slot.name === 'lock-screen-btn'">
+          <VbenIconButton
+            class="mr-1"
+            :tooltip="$t('ui.widgets.lockScreen.title')"
+            @click="handleOpenLock"
+          >
+            <LockKeyhole class="size-4" />
+          </VbenIconButton>
+        </template>
+        <template v-else-if="slot.name === 'logout-btn'">
+          <VbenIconButton
+            class="mr-1"
+            :tooltip="$t('common.logout')"
+            @click="handleLogout"
+          >
+            <LogOut class="size-4" />
+          </VbenIconButton>
+        </template>
+        <template v-else-if="slot.name === 'notification'">
+          <VbenTooltip side="bottom">
+            <template #trigger>
+              <Notification class="mr-1" />
+            </template>
+            {{ $t('preferences.widget.notification') }}
+          </VbenTooltip>
+        </template>
+        <template v-else-if="slot.name === 'refresh'">
+          <VbenIconButton
+            class="my-0 mr-1 rounded-md"
+            :tooltip="$t('preferences.widget.refresh')"
+            @click="refresh"
+          >
+            <RotateCw class="size-4" />
+          </VbenIconButton>
+        </template>
+      </slot>
+    </template>
+  </div>
+</template>
+
 <script lang="ts" setup>
 import { computed, useSlots } from 'vue';
 
@@ -257,142 +393,6 @@ function clearPreferencesAndLogout() {
   emit('clearPreferencesAndLogout');
 }
 </script>
-
-<template>
-  <LockModal
-    v-if="showLockInHeader"
-    :avatar="avatar"
-    :text="text"
-    @submit="handleSubmitLock"
-  />
-
-  <LogoutModal
-    v-if="showLogoutInHeader"
-    :cancel-text="$t('common.cancel')"
-    :confirm-text="$t('common.confirm')"
-    :fullscreen-button="false"
-    :title="$t('common.prompt')"
-    centered
-    content-class="px-8 min-h-10"
-    footer-class="border-none mb-3 mr-3"
-    header-class="border-none"
-  >
-    {{ $t('ui.widgets.logoutTip') }}
-  </LogoutModal>
-
-  <template
-    v-for="slot in leftSlots.filter((item) => item.index < REFERENCE_VALUE)"
-    :key="slot.name"
-  >
-    <slot :name="slot.name">
-      <template v-if="slot.name === 'refresh'">
-        <VbenIconButton class="my-0 mr-1 rounded-md" @click="refresh">
-          <RotateCw class="size-4" />
-        </VbenIconButton>
-      </template>
-    </slot>
-  </template>
-  <div class="flex-center hidden lg:block">
-    <slot name="breadcrumb"></slot>
-  </div>
-  <template
-    v-for="slot in leftSlots.filter((item) => item.index > REFERENCE_VALUE)"
-    :key="slot.name"
-  >
-    <slot :name="slot.name"></slot>
-  </template>
-  <div
-    :class="`menu-align-${preferences.header.menuAlign}`"
-    class="flex h-full min-w-0 flex-1 items-center"
-  >
-    <slot name="menu"></slot>
-  </div>
-  <div class="flex h-full min-w-0 shrink-0 items-center">
-    <template v-for="slot in rightSlots" :key="slot.name">
-      <slot :name="slot.name">
-        <template v-if="slot.name === 'global-search'">
-          <GlobalSearch
-            :enable-shortcut-key="globalSearchShortcutKey"
-            :menus="accessStore.accessMenus"
-            class="mr-1 sm:mr-4"
-          />
-        </template>
-
-        <template v-else-if="slot.name === 'preferences'">
-          <VbenTooltip side="bottom">
-            <template #trigger>
-              <PreferencesButton
-                class="mr-1"
-                @clear-preferences-and-logout="clearPreferencesAndLogout"
-              />
-            </template>
-            {{ $t('preferences.title') }}
-          </VbenTooltip>
-        </template>
-        <template v-else-if="slot.name === 'theme-toggle'">
-          <VbenTooltip side="bottom">
-            <template #trigger>
-              <ThemeToggle class="mt-0.5 mr-1" />
-            </template>
-            {{ $t('preferences.theme.title') }}
-          </VbenTooltip>
-        </template>
-        <template v-else-if="slot.name === 'language-toggle'">
-          <VbenTooltip side="bottom">
-            <template #trigger>
-              <LanguageToggle class="mr-1" />
-            </template>
-            {{ $t('preferences.widget.languageToggle') }}
-          </VbenTooltip>
-        </template>
-        <template v-else-if="slot.name === 'fullscreen'">
-          <VbenFullScreen
-            class="mr-1"
-            :tooltip="$t('preferences.widget.fullscreen')"
-          />
-        </template>
-        <template v-else-if="slot.name === 'timezone'">
-          <TimezoneButton class="mt-0.5 mr-1" />
-        </template>
-        <template v-else-if="slot.name === 'lock-screen-btn'">
-          <VbenIconButton
-            class="mr-1"
-            :tooltip="$t('ui.widgets.lockScreen.title')"
-            @click="handleOpenLock"
-          >
-            <LockKeyhole class="size-4" />
-          </VbenIconButton>
-        </template>
-        <template v-else-if="slot.name === 'logout-btn'">
-          <VbenIconButton
-            class="mr-1"
-            :tooltip="$t('common.logout')"
-            @click="handleLogout"
-          >
-            <LogOut class="size-4" />
-          </VbenIconButton>
-        </template>
-        <template v-else-if="slot.name === 'notification'">
-          <VbenTooltip side="bottom">
-            <template #trigger>
-              <Notification class="mr-1" />
-            </template>
-            {{ $t('preferences.widget.notification') }}
-          </VbenTooltip>
-        </template>
-        <template v-else-if="slot.name === 'refresh'">
-          <VbenIconButton
-            class="my-0 mr-1 rounded-md"
-            :tooltip="$t('preferences.widget.refresh')"
-            @click="refresh"
-          >
-            <RotateCw class="size-4" />
-          </VbenIconButton>
-        </template>
-      </slot>
-    </template>
-  </div>
-</template>
 <style lang="scss" scoped>
 .menu-align-start {
   --menu-align: start;

@@ -1,3 +1,77 @@
+<template>
+  <AlertDialog :modal="false" :open="open" @update:open="handleOpenChange">
+    <AlertDialogContent
+      :open="open"
+      :centered="centered"
+      :overlay-blur="overlayBlur"
+      @opened="emits('opened')"
+      @closed="onAlertClosed"
+      @escape-key-down="onEscapeKeyDown($event)"
+      @close="handleOpenChange(false)"
+      :class="
+        cn(
+          containerClass,
+          'flex max-h-[80%] flex-col p-0 duration-300 sm:w-130 sm:max-w-[80%] sm:rounded-(--radius)',
+          {
+            'border border-border': bordered,
+            'shadow-3xl': !bordered,
+          },
+        )
+      "
+    >
+      <div :class="cn('relative flex-1 overflow-y-auto p-3', contentClass)">
+        <AlertDialogTitle v-if="title">
+          <div class="flex items-center">
+            <component :is="getIconRender" class="mr-2" />
+            <span class="flex-auto">{{ $t(title) }}</span>
+            <AlertDialogCancel v-if="showCancel" as-child>
+              <VbenButton
+                variant="ghost"
+                size="icon"
+                class="rounded-full"
+                :disabled="loading"
+                @click="handleCancel"
+              >
+                <X class="size-4 text-muted-foreground" />
+              </VbenButton>
+            </AlertDialogCancel>
+          </div>
+        </AlertDialogTitle>
+        <AlertDialogDescription>
+          <div class="m-4 min-h-7.5">
+            <VbenRenderContent :content="content" render-br />
+          </div>
+          <VbenLoading v-if="loading && contentMasking" :spinning="loading" />
+        </AlertDialogDescription>
+        <div
+          class="flex items-center justify-end gap-x-2"
+          :class="`justify-${buttonAlign}`"
+        >
+          <VbenRenderContent :content="footer" />
+          <AlertDialogCancel v-if="showCancel" as-child>
+            <component
+              :is="components.DefaultButton || VbenButton"
+              :disabled="loading"
+              variant="outline"
+              @click="handleCancel"
+            >
+              {{ cancelText || $t('cancel') }}
+            </component>
+          </AlertDialogCancel>
+          <AlertDialogAction as-child>
+            <component
+              :is="components.PrimaryButton || VbenButton"
+              :loading="loading"
+              @click="handleConfirm"
+            >
+              {{ confirmText || $t('confirm') }}
+            </component>
+          </AlertDialogAction>
+        </div>
+      </div>
+    </AlertDialogContent>
+  </AlertDialog>
+</template>
 <script lang="ts" setup>
 import type { Component } from 'vue';
 
@@ -144,77 +218,3 @@ async function handleOpenChange(val: boolean) {
   }
 }
 </script>
-<template>
-  <AlertDialog :modal="false" :open="open" @update:open="handleOpenChange">
-    <AlertDialogContent
-      :open="open"
-      :centered="centered"
-      :overlay-blur="overlayBlur"
-      @opened="emits('opened')"
-      @closed="onAlertClosed"
-      @escape-key-down="onEscapeKeyDown($event)"
-      @close="handleOpenChange(false)"
-      :class="
-        cn(
-          containerClass,
-          'flex max-h-[80%] flex-col p-0 duration-300 sm:w-130 sm:max-w-[80%] sm:rounded-(--radius)',
-          {
-            'border border-border': bordered,
-            'shadow-3xl': !bordered,
-          },
-        )
-      "
-    >
-      <div :class="cn('relative flex-1 overflow-y-auto p-3', contentClass)">
-        <AlertDialogTitle v-if="title">
-          <div class="flex items-center">
-            <component :is="getIconRender" class="mr-2" />
-            <span class="flex-auto">{{ $t(title) }}</span>
-            <AlertDialogCancel v-if="showCancel" as-child>
-              <VbenButton
-                variant="ghost"
-                size="icon"
-                class="rounded-full"
-                :disabled="loading"
-                @click="handleCancel"
-              >
-                <X class="size-4 text-muted-foreground" />
-              </VbenButton>
-            </AlertDialogCancel>
-          </div>
-        </AlertDialogTitle>
-        <AlertDialogDescription>
-          <div class="m-4 min-h-7.5">
-            <VbenRenderContent :content="content" render-br />
-          </div>
-          <VbenLoading v-if="loading && contentMasking" :spinning="loading" />
-        </AlertDialogDescription>
-        <div
-          class="flex items-center justify-end gap-x-2"
-          :class="`justify-${buttonAlign}`"
-        >
-          <VbenRenderContent :content="footer" />
-          <AlertDialogCancel v-if="showCancel" as-child>
-            <component
-              :is="components.DefaultButton || VbenButton"
-              :disabled="loading"
-              variant="outline"
-              @click="handleCancel"
-            >
-              {{ cancelText || $t('cancel') }}
-            </component>
-          </AlertDialogCancel>
-          <AlertDialogAction as-child>
-            <component
-              :is="components.PrimaryButton || VbenButton"
-              :loading="loading"
-              @click="handleConfirm"
-            >
-              {{ confirmText || $t('confirm') }}
-            </component>
-          </AlertDialogAction>
-        </div>
-      </div>
-    </AlertDialogContent>
-  </AlertDialog>
-</template>

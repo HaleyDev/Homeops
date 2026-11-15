@@ -1,3 +1,12 @@
+<template>
+  <div
+    data-slot="card-footer"
+    :class="cn('flex items-center px-6 [.border-t]:pt-6', props.class)"
+  >
+    <slot></slot>
+  </div>
+</template>
+
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
 
@@ -7,12 +16,3 @@ const props = defineProps<{
   class?: HTMLAttributes['class'];
 }>();
 </script>
-
-<template>
-  <div
-    data-slot="card-footer"
-    :class="cn('flex items-center px-6 [.border-t]:pt-6', props.class)"
-  >
-    <slot></slot>
-  </div>
-</template>

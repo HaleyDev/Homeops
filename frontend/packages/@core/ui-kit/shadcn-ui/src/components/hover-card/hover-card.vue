@@ -1,3 +1,20 @@
+<template>
+  <HoverCard v-bind="forwarded">
+    <HoverCardTrigger as-child class="h-full">
+      <div class="h-full cursor-pointer">
+        <slot name="trigger"></slot>
+      </div>
+    </HoverCardTrigger>
+    <HoverCardContent
+      :class="contentClass"
+      v-bind="contentProps"
+      class="side-content z-popup"
+    >
+      <slot></slot>
+    </HoverCardContent>
+  </HoverCard>
+</template>
+
 <script setup lang="ts">
 import type {
   HoverCardContentProps,
@@ -36,20 +53,3 @@ const delegatedProps = computed(() => {
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-
-<template>
-  <HoverCard v-bind="forwarded">
-    <HoverCardTrigger as-child class="h-full">
-      <div class="h-full cursor-pointer">
-        <slot name="trigger"></slot>
-      </div>
-    </HoverCardTrigger>
-    <HoverCardContent
-      :class="contentClass"
-      v-bind="contentProps"
-      class="side-content z-popup"
-    >
-      <slot></slot>
-    </HoverCardContent>
-  </HoverCard>
-</template>

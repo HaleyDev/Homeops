@@ -1,3 +1,19 @@
+<template>
+  <PopoverRoot v-bind="forwarded">
+    <PopoverTrigger as="span" :class="triggerClass">
+      <slot name="trigger"></slot>
+
+      <PopoverContent
+        :class="contentClass"
+        class="side-content z-popup"
+        v-bind="contentProps"
+      >
+        <slot></slot>
+      </PopoverContent>
+    </PopoverTrigger>
+  </PopoverRoot>
+</template>
+
 <script setup lang="ts">
 import type {
   PopoverContentProps,
@@ -42,19 +58,3 @@ const delegatedProps = computed(() => {
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-
-<template>
-  <PopoverRoot v-bind="forwarded">
-    <PopoverTrigger as="span" :class="triggerClass">
-      <slot name="trigger"></slot>
-
-      <PopoverContent
-        :class="contentClass"
-        class="side-content z-popup"
-        v-bind="contentProps"
-      >
-        <slot></slot>
-      </PopoverContent>
-    </PopoverTrigger>
-  </PopoverRoot>
-</template>

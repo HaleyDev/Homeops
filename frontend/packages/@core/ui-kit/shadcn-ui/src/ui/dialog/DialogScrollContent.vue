@@ -1,33 +1,3 @@
-<script setup lang="ts">
-import type { DialogContentEmits, DialogContentProps } from 'reka-ui';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { X } from '@lucide/vue';
-import { reactiveOmit } from '@vueuse/core';
-import {
-  DialogClose,
-  DialogContent,
-  DialogOverlay,
-  DialogPortal,
-  useForwardPropsEmits,
-} from 'reka-ui';
-
-defineOptions({
-  inheritAttrs: false,
-});
-
-const props = withDefaults(
-  defineProps<DialogContentProps & { class?: any; zIndex?: number }>(),
-  { zIndex: 1000 },
-);
-const emits = defineEmits<DialogContentEmits>();
-
-const delegatedProps = reactiveOmit(props, 'class');
-
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
-</script>
-
 <template>
   <DialogPortal>
     <DialogOverlay
@@ -67,3 +37,33 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     </DialogOverlay>
   </DialogPortal>
 </template>
+
+<script setup lang="ts">
+import type { DialogContentEmits, DialogContentProps } from 'reka-ui';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { X } from '@lucide/vue';
+import { reactiveOmit } from '@vueuse/core';
+import {
+  DialogClose,
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  useForwardPropsEmits,
+} from 'reka-ui';
+
+defineOptions({
+  inheritAttrs: false,
+});
+
+const props = withDefaults(
+  defineProps<DialogContentProps & { class?: any; zIndex?: number }>(),
+  { zIndex: 1000 },
+);
+const emits = defineEmits<DialogContentEmits>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>

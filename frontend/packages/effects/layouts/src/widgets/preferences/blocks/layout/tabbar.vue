@@ -1,3 +1,54 @@
+<template>
+  <SwitchItem v-model="tabbarEnable" :disabled="disabled">
+    {{ $t('preferences.tabbar.enable') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarPersist" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.persist') }}
+  </SwitchItem>
+  <SwitchItem
+    v-model="tabbarVisitHistory"
+    :disabled="!tabbarEnable"
+    :tip="$t('preferences.tabbar.visitHistoryTip')"
+  >
+    {{ $t('preferences.tabbar.visitHistory') }}
+  </SwitchItem>
+  <NumberFieldItem
+    v-model="tabbarMaxCount"
+    :disabled="!tabbarEnable"
+    :max="30"
+    :min="0"
+    :step="5"
+    :tip="$t('preferences.tabbar.maxCountTip')"
+  >
+    {{ $t('preferences.tabbar.maxCount') }}
+  </NumberFieldItem>
+  <SwitchItem v-model="tabbarDraggable" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.draggable') }}
+  </SwitchItem>
+  <SwitchItem
+    v-model="tabbarWheelable"
+    :disabled="!tabbarEnable"
+    :tip="$t('preferences.tabbar.wheelableTip')"
+  >
+    {{ $t('preferences.tabbar.wheelable') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarMiddleClickToClose" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.middleClickClose') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarShowIcon" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.icon') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarShowMore" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.showMore') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarShowMaximize" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.showMaximize') }}
+  </SwitchItem>
+  <SelectItem v-model="tabbarStyleType" :items="styleItems">
+    {{ $t('preferences.tabbar.styleType.title') }}
+  </SelectItem>
+</template>
+
 <script setup lang="ts">
 import type { SelectOption } from '@vben/types';
 
@@ -49,54 +100,3 @@ const styleItems = computed((): SelectOption[] => [
   },
 ]);
 </script>
-
-<template>
-  <SwitchItem v-model="tabbarEnable" :disabled="disabled">
-    {{ $t('preferences.tabbar.enable') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarPersist" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.persist') }}
-  </SwitchItem>
-  <SwitchItem
-    v-model="tabbarVisitHistory"
-    :disabled="!tabbarEnable"
-    :tip="$t('preferences.tabbar.visitHistoryTip')"
-  >
-    {{ $t('preferences.tabbar.visitHistory') }}
-  </SwitchItem>
-  <NumberFieldItem
-    v-model="tabbarMaxCount"
-    :disabled="!tabbarEnable"
-    :max="30"
-    :min="0"
-    :step="5"
-    :tip="$t('preferences.tabbar.maxCountTip')"
-  >
-    {{ $t('preferences.tabbar.maxCount') }}
-  </NumberFieldItem>
-  <SwitchItem v-model="tabbarDraggable" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.draggable') }}
-  </SwitchItem>
-  <SwitchItem
-    v-model="tabbarWheelable"
-    :disabled="!tabbarEnable"
-    :tip="$t('preferences.tabbar.wheelableTip')"
-  >
-    {{ $t('preferences.tabbar.wheelable') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarMiddleClickToClose" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.middleClickClose') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarShowIcon" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.icon') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarShowMore" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.showMore') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarShowMaximize" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.showMaximize') }}
-  </SwitchItem>
-  <SelectItem v-model="tabbarStyleType" :items="styleItems">
-    {{ $t('preferences.tabbar.styleType.title') }}
-  </SelectItem>
-</template>

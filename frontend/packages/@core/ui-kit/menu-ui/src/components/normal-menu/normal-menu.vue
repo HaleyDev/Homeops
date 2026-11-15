@@ -1,3 +1,28 @@
+<template>
+  <ul
+    :class="[
+      theme,
+      b(),
+      is('collapse', collapse),
+      is(theme, true),
+      is('rounded', rounded),
+    ]"
+    class="relative"
+  >
+    <template v-for="menu in menus" :key="menu.path">
+      <li
+        :class="[e('item'), is('active', activePath === menu.path)]"
+        @click="() => emit('select', menu)"
+        @mouseenter="() => emit('enter', menu)"
+      >
+        <VbenIcon :class="e('icon')" :icon="menuIcon(menu)" fallback />
+
+        <span :class="e('name')" class="truncate"> {{ menu.name }}</span>
+      </li>
+    </template>
+  </ul>
+</template>
+
 <script setup lang="ts">
 import type { MenuRecordRaw } from '@vben-core/typings';
 
@@ -32,31 +57,6 @@ function menuIcon(menu: MenuRecordRaw) {
     : menu.icon;
 }
 </script>
-
-<template>
-  <ul
-    :class="[
-      theme,
-      b(),
-      is('collapse', collapse),
-      is(theme, true),
-      is('rounded', rounded),
-    ]"
-    class="relative"
-  >
-    <template v-for="menu in menus" :key="menu.path">
-      <li
-        :class="[e('item'), is('active', activePath === menu.path)]"
-        @click="() => emit('select', menu)"
-        @mouseenter="() => emit('enter', menu)"
-      >
-        <VbenIcon :class="e('icon')" :icon="menuIcon(menu)" fallback />
-
-        <span :class="e('name')" class="truncate"> {{ menu.name }}</span>
-      </li>
-    </template>
-  </ul>
-</template>
 <style scoped>
 @reference "@vben/tailwind-config/theme";
 

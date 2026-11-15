@@ -5,6 +5,11 @@
  2. 支持多个角色，只要有一个角色满足即可 或者 多个角色全部满足
  3. 支持自定义权限码和角色的判断逻辑
 -->
+<template>
+  <slot v-if="!codes"></slot>
+  <slot v-else-if="hasAuth"></slot>
+</template>
+
 <script lang="ts" setup>
 import { computed } from 'vue';
 
@@ -40,8 +45,3 @@ const hasAuth = computed(() => {
   return type === 'role' ? hasAccessByRoles(codes) : hasAccessByCodes(codes);
 });
 </script>
-
-<template>
-  <slot v-if="!codes"></slot>
-  <slot v-else-if="hasAuth"></slot>
-</template>

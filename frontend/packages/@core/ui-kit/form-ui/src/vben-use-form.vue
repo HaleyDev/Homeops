@@ -1,3 +1,74 @@
+<template>
+  <Form
+    @keydown.enter="handleKeyDownEnter"
+    v-bind="forward"
+    :collapsed="state?.collapsed"
+    :component-bind-event-map="COMPONENT_BIND_EVENT_MAP"
+    :component-map="COMPONENT_MAP"
+    :form="form"
+    :global-common-config="DEFAULT_FORM_COMMON_CONFIG"
+  >
+    <template
+      v-for="slotName in delegatedSlots"
+      :key="slotName"
+      #[slotName]="slotProps"
+    >
+      <slot
+        :name="slotName"
+        v-bind="slotProps"
+        :form-api="formApi"
+        :values="form.values"
+      ></slot>
+    </template>
+    <template #default="slotProps">
+      <slot
+        v-if="$slots.default"
+        v-bind="slotProps"
+        :form-api="formApi"
+        :values="form.values"
+      ></slot>
+      <FormActions
+        v-else-if="forward.showDefaultActions"
+        :model-value="state?.collapsed"
+        @update:model-value="handleUpdateCollapsed"
+      >
+        <template #reset-before="resetSlotProps">
+          <slot
+            name="reset-before"
+            v-bind="resetSlotProps"
+            :form-api="formApi"
+            :values="form.values"
+          ></slot>
+        </template>
+        <template #submit-before="submitSlotProps">
+          <slot
+            name="submit-before"
+            v-bind="submitSlotProps"
+            :form-api="formApi"
+            :values="form.values"
+          ></slot>
+        </template>
+        <template #expand-before="expandBeforeSlotProps">
+          <slot
+            name="expand-before"
+            v-bind="expandBeforeSlotProps"
+            :form-api="formApi"
+            :values="form.values"
+          ></slot>
+        </template>
+        <template #expand-after="expandAfterSlotProps">
+          <slot
+            name="expand-after"
+            v-bind="expandAfterSlotProps"
+            :form-api="formApi"
+            :values="form.values"
+          ></slot>
+        </template>
+      </FormActions>
+    </template>
+  </Form>
+</template>
+
 <script setup lang="ts">
 import type { ExtendedFormApi, VbenFormProps, VbenFormSlots } from './types';
 
@@ -111,74 +182,3 @@ watch(values, (currentValues, previousValues) => {
   }
 });
 </script>
-
-<template>
-  <Form
-    @keydown.enter="handleKeyDownEnter"
-    v-bind="forward"
-    :collapsed="state?.collapsed"
-    :component-bind-event-map="COMPONENT_BIND_EVENT_MAP"
-    :component-map="COMPONENT_MAP"
-    :form="form"
-    :global-common-config="DEFAULT_FORM_COMMON_CONFIG"
-  >
-    <template
-      v-for="slotName in delegatedSlots"
-      :key="slotName"
-      #[slotName]="slotProps"
-    >
-      <slot
-        :name="slotName"
-        v-bind="slotProps"
-        :form-api="formApi"
-        :values="form.values"
-      ></slot>
-    </template>
-    <template #default="slotProps">
-      <slot
-        v-if="$slots.default"
-        v-bind="slotProps"
-        :form-api="formApi"
-        :values="form.values"
-      ></slot>
-      <FormActions
-        v-else-if="forward.showDefaultActions"
-        :model-value="state?.collapsed"
-        @update:model-value="handleUpdateCollapsed"
-      >
-        <template #reset-before="resetSlotProps">
-          <slot
-            name="reset-before"
-            v-bind="resetSlotProps"
-            :form-api="formApi"
-            :values="form.values"
-          ></slot>
-        </template>
-        <template #submit-before="submitSlotProps">
-          <slot
-            name="submit-before"
-            v-bind="submitSlotProps"
-            :form-api="formApi"
-            :values="form.values"
-          ></slot>
-        </template>
-        <template #expand-before="expandBeforeSlotProps">
-          <slot
-            name="expand-before"
-            v-bind="expandBeforeSlotProps"
-            :form-api="formApi"
-            :values="form.values"
-          ></slot>
-        </template>
-        <template #expand-after="expandAfterSlotProps">
-          <slot
-            name="expand-after"
-            v-bind="expandAfterSlotProps"
-            :form-api="formApi"
-            :values="form.values"
-          ></slot>
-        </template>
-      </FormActions>
-    </template>
-  </Form>
-</template>

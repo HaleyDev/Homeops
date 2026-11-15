@@ -1,3 +1,34 @@
+<template>
+  <div
+    :class="[
+      b(),
+      is('collapse-show-title', getCollapseShowTitle),
+      is('more', isMenuMore),
+    ]"
+  >
+    <slot></slot>
+
+    <VbenIcon
+      v-if="!isMenuMore"
+      :class="nsMenu.e('icon')"
+      :icon="icon"
+      fallback
+    />
+
+    <div v-if="!hiddenTitle" :class="[e('title')]">
+      <slot name="title"></slot>
+    </div>
+
+    <component
+      :is="iconComp"
+      v-if="!isMenuMore"
+      v-show="showArrowIcon"
+      :class="[e('icon-arrow')]"
+      :style="iconArrowStyle"
+      class="size-4"
+    />
+  </div>
+</template>
 <script lang="ts" setup>
 import type { MenuItemProps } from '../types';
 
@@ -72,34 +103,3 @@ const iconArrowStyle = computed(() => {
   return opened.value ? { transform: `rotate(180deg)` } : {};
 });
 </script>
-<template>
-  <div
-    :class="[
-      b(),
-      is('collapse-show-title', getCollapseShowTitle),
-      is('more', isMenuMore),
-    ]"
-  >
-    <slot></slot>
-
-    <VbenIcon
-      v-if="!isMenuMore"
-      :class="nsMenu.e('icon')"
-      :icon="icon"
-      fallback
-    />
-
-    <div v-if="!hiddenTitle" :class="[e('title')]">
-      <slot name="title"></slot>
-    </div>
-
-    <component
-      :is="iconComp"
-      v-if="!isMenuMore"
-      v-show="showArrowIcon"
-      :class="[e('icon-arrow')]"
-      :style="iconArrowStyle"
-      class="size-4"
-    />
-  </div>
-</template>

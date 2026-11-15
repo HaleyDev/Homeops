@@ -1,3 +1,12 @@
+<template>
+  <VbenBreadcrumbView
+    :breadcrumbs="breadcrumbs"
+    :show-icon="showIcon"
+    :style-type="type"
+    class="ml-2"
+    @select="handleSelect"
+  />
+</template>
 <script lang="ts" setup>
 import type { BreadcrumbStyleType } from '@vben/types';
 
@@ -63,12 +72,3 @@ function handleSelect(path: string) {
   router.push(path);
 }
 </script>
-<template>
-  <VbenBreadcrumbView
-    :breadcrumbs="breadcrumbs"
-    :show-icon="showIcon"
-    :style-type="type"
-    class="ml-2"
-    @select="handleSelect"
-  />
-</template>

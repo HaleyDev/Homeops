@@ -1,3 +1,17 @@
+<template>
+  <UpdateNoticeModal
+    :cancel-text="$t('common.cancel')"
+    :confirm-text="$t('common.refresh')"
+    :fullscreen-button="false"
+    :title="$t('ui.widgets.checkUpdatesTitle')"
+    centered
+    content-class="px-8 min-h-10"
+    footer-class="border-none mb-3 mr-3"
+    header-class="border-none"
+  >
+    {{ $t('ui.widgets.checkUpdatesDescription') }}
+  </UpdateNoticeModal>
+</template>
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 
@@ -120,17 +134,3 @@ onUnmounted(() => {
   document.removeEventListener('visibilitychange', handleVisibilitychange);
 });
 </script>
-<template>
-  <UpdateNoticeModal
-    :cancel-text="$t('common.cancel')"
-    :confirm-text="$t('common.refresh')"
-    :fullscreen-button="false"
-    :title="$t('ui.widgets.checkUpdatesTitle')"
-    centered
-    content-class="px-8 min-h-10"
-    footer-class="border-none mb-3 mr-3"
-    header-class="border-none"
-  >
-    {{ $t('ui.widgets.checkUpdatesDescription') }}
-  </UpdateNoticeModal>
-</template>

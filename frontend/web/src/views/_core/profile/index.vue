@@ -1,3 +1,18 @@
+<template>
+  <Profile
+    v-model:model-value="tabsValue"
+    title="个人中心"
+    :user-info="userStore.userInfo"
+    :tabs="tabs"
+  >
+    <template #content>
+      <ProfileBase v-if="tabsValue === 'basic'" />
+      <ProfileSecuritySetting v-if="tabsValue === 'security'" />
+      <ProfilePasswordSetting v-if="tabsValue === 'password'" />
+      <ProfileNotificationSetting v-if="tabsValue === 'notice'" />
+    </template>
+  </Profile>
+</template>
 <script setup lang="ts">
 import { ref } from 'vue';
 
@@ -32,18 +47,3 @@ const tabs = ref([
   },
 ]);
 </script>
-<template>
-  <Profile
-    v-model:model-value="tabsValue"
-    title="个人中心"
-    :user-info="userStore.userInfo"
-    :tabs="tabs"
-  >
-    <template #content>
-      <ProfileBase v-if="tabsValue === 'basic'" />
-      <ProfileSecuritySetting v-if="tabsValue === 'security'" />
-      <ProfilePasswordSetting v-if="tabsValue === 'password'" />
-      <ProfileNotificationSetting v-if="tabsValue === 'notice'" />
-    </template>
-  </Profile>
-</template>

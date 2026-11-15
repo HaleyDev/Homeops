@@ -1,3 +1,7 @@
+<template>
+  <div v-bind="$attrs" :style="{ height, width }"></div>
+</template>
+
 <script setup lang="ts">
 interface Props {
   height?: string;
@@ -9,7 +13,3 @@ withDefaults(defineProps<Props>(), {
   width: '100%',
 });
 </script>
-
-<template>
-  <div v-bind="$attrs" :style="{ height, width }"></div>
-</template>

@@ -1,63 +1,3 @@
-<script lang="ts" setup>
-import type { NotificationItem } from './types';
-
-import { Bell, CircleCheckBig, CircleX, MailCheck } from '@vben/icons';
-import { $t } from '@vben/locales';
-
-import {
-  VbenButton,
-  VbenIconButton,
-  VbenPopover,
-  VbenScrollbar,
-} from '@vben-core/shadcn-ui';
-
-import { useToggle } from '@vueuse/core';
-
-defineOptions({ name: 'NotificationPopup' });
-
-withDefaults(
-  defineProps<{
-    /** 显示圆点 */
-    dot?: boolean;
-    /** 消息列表 */
-    notifications?: NotificationItem[];
-  }>(),
-  {
-    dot: false,
-    notifications: () => [],
-  },
-);
-
-const emit = defineEmits<{
-  clear: [];
-  makeAll: [];
-  onClick: [NotificationItem];
-  read: [NotificationItem];
-  remove: [NotificationItem];
-  viewAll: [];
-}>();
-
-const [open, toggle] = useToggle();
-
-const close = () => {
-  open.value = false;
-};
-
-function handleViewAll() {
-  emit('viewAll');
-  close();
-}
-
-function handleMakeAll() {
-  emit('makeAll');
-}
-
-function handleClear() {
-  emit('clear');
-}
-
-defineExpose({ toggle });
-</script>
 <template>
   <VbenPopover v-model:open="open" content-class="relative right-2 w-90 p-0">
     <template #trigger>
@@ -171,6 +111,66 @@ defineExpose({ toggle });
     </div>
   </VbenPopover>
 </template>
+<script lang="ts" setup>
+import type { NotificationItem } from './types';
+
+import { Bell, CircleCheckBig, CircleX, MailCheck } from '@vben/icons';
+import { $t } from '@vben/locales';
+
+import {
+  VbenButton,
+  VbenIconButton,
+  VbenPopover,
+  VbenScrollbar,
+} from '@vben-core/shadcn-ui';
+
+import { useToggle } from '@vueuse/core';
+
+defineOptions({ name: 'NotificationPopup' });
+
+withDefaults(
+  defineProps<{
+    /** 显示圆点 */
+    dot?: boolean;
+    /** 消息列表 */
+    notifications?: NotificationItem[];
+  }>(),
+  {
+    dot: false,
+    notifications: () => [],
+  },
+);
+
+const emit = defineEmits<{
+  clear: [];
+  makeAll: [];
+  onClick: [NotificationItem];
+  read: [NotificationItem];
+  remove: [NotificationItem];
+  viewAll: [];
+}>();
+
+const [open, toggle] = useToggle();
+
+const close = () => {
+  open.value = false;
+};
+
+function handleViewAll() {
+  emit('viewAll');
+  close();
+}
+
+function handleMakeAll() {
+  emit('makeAll');
+}
+
+function handleClear() {
+  emit('clear');
+}
+
+defineExpose({ toggle });
+</script>
 
 <style scoped>
 :deep(.bell-button) {

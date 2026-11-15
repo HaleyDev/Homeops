@@ -1,24 +1,3 @@
-<script setup lang="ts">
-import type { SwitchRootEmits, SwitchRootProps } from 'reka-ui';
-
-import type { HTMLAttributes } from 'vue';
-
-import { cn } from '@vben-core/shared/utils';
-
-import { reactiveOmit } from '@vueuse/core';
-import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from 'reka-ui';
-
-const props = defineProps<
-  SwitchRootProps & { class?: HTMLAttributes['class'] }
->();
-
-const emits = defineEmits<SwitchRootEmits>();
-
-const delegatedProps = reactiveOmit(props, 'class');
-
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
-</script>
-
 <template>
   <SwitchRoot
     v-slot="slotProps"
@@ -43,3 +22,24 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     </SwitchThumb>
   </SwitchRoot>
 </template>
+
+<script setup lang="ts">
+import type { SwitchRootEmits, SwitchRootProps } from 'reka-ui';
+
+import type { HTMLAttributes } from 'vue';
+
+import { cn } from '@vben-core/shared/utils';
+
+import { reactiveOmit } from '@vueuse/core';
+import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from 'reka-ui';
+
+const props = defineProps<
+  SwitchRootProps & { class?: HTMLAttributes['class'] }
+>();
+
+const emits = defineEmits<SwitchRootEmits>();
+
+const delegatedProps = reactiveOmit(props, 'class');
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+</script>

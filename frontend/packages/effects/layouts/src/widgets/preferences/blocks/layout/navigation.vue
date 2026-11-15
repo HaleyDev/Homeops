@@ -1,3 +1,25 @@
+<template>
+  <ToggleItem
+    v-model="navigationStyleType"
+    :disabled="disabled"
+    :items="stylesItems"
+  >
+    {{ $t('preferences.navigationMenu.style') }}
+  </ToggleItem>
+  <SwitchItem
+    v-model="navigationSplit"
+    :disabled="disabledNavigationSplit || disabled"
+  >
+    {{ $t('preferences.navigationMenu.split') }}
+    <template #tip>
+      {{ $t('preferences.navigationMenu.splitTip') }}
+    </template>
+  </SwitchItem>
+  <SwitchItem v-model="navigationAccordion" :disabled="disabled">
+    {{ $t('preferences.navigationMenu.accordion') }}
+  </SwitchItem>
+</template>
+
 <script setup lang="ts">
 import type { SelectOption } from '@vben/types';
 
@@ -21,25 +43,3 @@ const stylesItems: SelectOption[] = [
   { label: $t('preferences.plain'), value: 'plain' },
 ];
 </script>
-
-<template>
-  <ToggleItem
-    v-model="navigationStyleType"
-    :disabled="disabled"
-    :items="stylesItems"
-  >
-    {{ $t('preferences.navigationMenu.style') }}
-  </ToggleItem>
-  <SwitchItem
-    v-model="navigationSplit"
-    :disabled="disabledNavigationSplit || disabled"
-  >
-    {{ $t('preferences.navigationMenu.split') }}
-    <template #tip>
-      {{ $t('preferences.navigationMenu.splitTip') }}
-    </template>
-  </SwitchItem>
-  <SwitchItem v-model="navigationAccordion" :disabled="disabled">
-    {{ $t('preferences.navigationMenu.accordion') }}
-  </SwitchItem>
-</template>

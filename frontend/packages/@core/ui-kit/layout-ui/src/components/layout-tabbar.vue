@@ -1,3 +1,12 @@
+<template>
+  <section
+    :style="style"
+    class="flex w-full border-b border-border bg-background transition-all"
+  >
+    <slot></slot>
+  </section>
+</template>
+
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
@@ -19,12 +28,3 @@ const style = computed((): CSSProperties => {
   };
 });
 </script>
-
-<template>
-  <section
-    :style="style"
-    class="flex w-full border-b border-border bg-background transition-all"
-  >
-    <slot></slot>
-  </section>
-</template>

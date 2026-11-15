@@ -1,3 +1,21 @@
+<template>
+  <PaginationListItem
+    data-slot="pagination-item"
+    v-bind="delegatedProps"
+    :class="
+      cn(
+        buttonVariants({
+          variant: isActive ? 'outline' : 'ghost',
+          size,
+        }),
+        props.class,
+      )
+    "
+  >
+    <slot></slot>
+  </PaginationListItem>
+</template>
+
 <script setup lang="ts">
 import type { PaginationListItemProps } from 'reka-ui';
 
@@ -27,21 +45,3 @@ const props = withDefaults(
 
 const delegatedProps = reactiveOmit(props, 'class', 'size', 'isActive');
 </script>
-
-<template>
-  <PaginationListItem
-    data-slot="pagination-item"
-    v-bind="delegatedProps"
-    :class="
-      cn(
-        buttonVariants({
-          variant: isActive ? 'outline' : 'ghost',
-          size,
-        }),
-        props.class,
-      )
-    "
-  >
-    <slot></slot>
-  </PaginationListItem>
-</template>

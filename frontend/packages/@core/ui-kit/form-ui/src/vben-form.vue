@@ -1,3 +1,31 @@
+<template>
+  <Form
+    v-bind="forward"
+    :collapsed="currentCollapsed"
+    :component-bind-event-map="COMPONENT_BIND_EVENT_MAP"
+    :component-map="COMPONENT_MAP"
+    :form="form"
+    :global-common-config="DEFAULT_FORM_COMMON_CONFIG"
+  >
+    <template
+      v-for="slotName in delegatedSlots"
+      :key="slotName"
+      #[slotName]="slotProps"
+    >
+      <slot :name="slotName" v-bind="slotProps"></slot>
+    </template>
+    <template #default="slotProps">
+      <slot v-bind="slotProps">
+        <FormActions
+          v-if="showDefaultActions"
+          :model-value="currentCollapsed"
+          @update:model-value="handleUpdateCollapsed"
+        />
+      </slot>
+    </template>
+  </Form>
+</template>
+
 <script setup lang="ts">
 import type { VbenFormProps } from './types';
 
@@ -49,31 +77,3 @@ watchEffect(() => {
   currentCollapsed.value = props.collapsed;
 });
 </script>
-
-<template>
-  <Form
-    v-bind="forward"
-    :collapsed="currentCollapsed"
-    :component-bind-event-map="COMPONENT_BIND_EVENT_MAP"
-    :component-map="COMPONENT_MAP"
-    :form="form"
-    :global-common-config="DEFAULT_FORM_COMMON_CONFIG"
-  >
-    <template
-      v-for="slotName in delegatedSlots"
-      :key="slotName"
-      #[slotName]="slotProps"
-    >
-      <slot :name="slotName" v-bind="slotProps"></slot>
-    </template>
-    <template #default="slotProps">
-      <slot v-bind="slotProps">
-        <FormActions
-          v-if="showDefaultActions"
-          :model-value="currentCollapsed"
-          @update:model-value="handleUpdateCollapsed"
-        />
-      </slot>
-    </template>
-  </Form>
-</template>

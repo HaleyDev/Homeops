@@ -1,3 +1,95 @@
+<template>
+  <div :class="cn('w-full', $attrs.class as string)">
+    <div class="border-border/70 overflow-hidden rounded-md border">
+      <div
+        class="bg-muted/30 border-border hidden border-b px-2 sm:grid"
+        :style="gridStyle"
+      >
+        <div
+          v-if="showIndex"
+          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
+        >
+          #
+        </div>
+        <div
+          v-for="col in schema"
+          :key="col.fieldName"
+          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
+        >
+          <VbenRenderContent :content="col.label" />
+        </div>
+        <div
+          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
+        >
+          {{ actionText }}
+        </div>
+      </div>
+
+      <div
+        v-for="index in rowIndexes"
+        :key="`${arrayPath}-${index}`"
+        class="border-border/60 border-b p-3 last:border-b-0 sm:grid sm:p-0"
+        :style="gridStyle"
+      >
+        <div
+          v-if="showIndex"
+          class="text-muted-foreground mb-2 text-sm sm:mb-0 sm:px-4 sm:py-3"
+        >
+          <span class="sm:hidden">#</span>
+          {{ index + 1 }}
+        </div>
+
+        <template
+          v-for="(childSchema, childIndex) in normalizedRowSchemas[index]"
+          :key="childSchema.fieldName"
+        >
+          <div class="min-w-0 py-2 sm:px-2">
+            <div
+              class="text-muted-foreground mb-1 text-xs font-medium sm:hidden"
+            >
+              <VbenRenderContent :content="schema?.[childIndex]?.label" />
+            </div>
+            <FormField
+              v-bind="childSchema"
+              :class="childSchema.formItemClass"
+            />
+          </div>
+        </template>
+
+        <div class="flex justify-end pt-1 sm:block sm:px-2 sm:py-3">
+          <VbenIconButton
+            type="button"
+            :disabled="disabled || !canRemove"
+            :on-click="() => removeRow(index)"
+            class="text-muted-foreground hover:text-destructive"
+          >
+            <X class="size-4" />
+          </VbenIconButton>
+        </div>
+      </div>
+
+      <div
+        v-if="arrayLength === 0"
+        class="text-muted-foreground py-6 text-center text-sm"
+      >
+        {{ emptyText }}
+      </div>
+    </div>
+
+    <VbenButton
+      variant="outline"
+      size="sm"
+      type="button"
+      :disabled="disabled || !canAdd"
+      class="mt-3 w-full border-dashed"
+      @click="addRow"
+    >
+      <Plus class="mr-1 size-4" />
+      {{ addButtonText }}
+    </VbenButton>
+  </div>
+</template>
+
 <script setup lang="ts">
 // oxlint-disable unicorn/no-nested-ternary
 import type { FormCommonConfig, FormSchema } from '../types';
@@ -140,95 +232,3 @@ const normalizedRowSchemas = computed(() =>
   Array.from({ length: arrayLength.value }, (_, index) => rowSchemas(index)),
 );
 </script>
-
-<template>
-  <div :class="cn('w-full', $attrs.class as string)">
-    <div class="border-border/70 overflow-hidden rounded-md border">
-      <div
-        class="bg-muted/30 border-border hidden border-b px-2 sm:grid"
-        :style="gridStyle"
-      >
-        <div
-          v-if="showIndex"
-          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
-        >
-          #
-        </div>
-        <div
-          v-for="col in schema"
-          :key="col.fieldName"
-          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
-        >
-          <VbenRenderContent :content="col.label" />
-        </div>
-        <div
-          class="text-muted-foreground px-2 py-2 text-left text-sm font-normal"
-        >
-          {{ actionText }}
-        </div>
-      </div>
-
-      <div
-        v-for="index in rowIndexes"
-        :key="`${arrayPath}-${index}`"
-        class="border-border/60 border-b p-3 last:border-b-0 sm:grid sm:p-0"
-        :style="gridStyle"
-      >
-        <div
-          v-if="showIndex"
-          class="text-muted-foreground mb-2 text-sm sm:mb-0 sm:px-4 sm:py-3"
-        >
-          <span class="sm:hidden">#</span>
-          {{ index + 1 }}
-        </div>
-
-        <template
-          v-for="(childSchema, childIndex) in normalizedRowSchemas[index]"
-          :key="childSchema.fieldName"
-        >
-          <div class="min-w-0 py-2 sm:px-2">
-            <div
-              class="text-muted-foreground mb-1 text-xs font-medium sm:hidden"
-            >
-              <VbenRenderContent :content="schema?.[childIndex]?.label" />
-            </div>
-            <FormField
-              v-bind="childSchema"
-              :class="childSchema.formItemClass"
-            />
-          </div>
-        </template>
-
-        <div class="flex justify-end pt-1 sm:block sm:px-2 sm:py-3">
-          <VbenIconButton
-            type="button"
-            :disabled="disabled || !canRemove"
-            :on-click="() => removeRow(index)"
-            class="text-muted-foreground hover:text-destructive"
-          >
-            <X class="size-4" />
-          </VbenIconButton>
-        </div>
-      </div>
-
-      <div
-        v-if="arrayLength === 0"
-        class="text-muted-foreground py-6 text-center text-sm"
-      >
-        {{ emptyText }}
-      </div>
-    </div>
-
-    <VbenButton
-      variant="outline"
-      size="sm"
-      type="button"
-      :disabled="disabled || !canAdd"
-      class="mt-3 w-full border-dashed"
-      @click="addRow"
-    >
-      <Plus class="mr-1 size-4" />
-      {{ addButtonText }}
-    </VbenButton>
-  </div>
-</template>

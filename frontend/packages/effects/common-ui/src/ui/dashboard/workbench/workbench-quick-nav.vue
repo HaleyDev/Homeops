@@ -1,30 +1,3 @@
-<script setup lang="ts">
-import type { WorkbenchQuickNavItem } from '../typing';
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  VbenIcon,
-} from '@vben-core/shadcn-ui';
-
-interface Props {
-  items?: WorkbenchQuickNavItem[];
-  title: string;
-}
-
-defineOptions({
-  name: 'WorkbenchQuickNav',
-});
-
-withDefaults(defineProps<Props>(), {
-  items: () => [],
-});
-
-defineEmits(['click']);
-</script>
-
 <template>
   <Card>
     <CardHeader>
@@ -54,3 +27,30 @@ defineEmits(['click']);
     </CardContent>
   </Card>
 </template>
+
+<script setup lang="ts">
+import type { WorkbenchQuickNavItem } from '../typing';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  VbenIcon,
+} from '@vben-core/shadcn-ui';
+
+interface Props {
+  items?: WorkbenchQuickNavItem[];
+  title: string;
+}
+
+defineOptions({
+  name: 'WorkbenchQuickNav',
+});
+
+withDefaults(defineProps<Props>(), {
+  items: () => [],
+});
+
+defineEmits(['click']);
+</script>

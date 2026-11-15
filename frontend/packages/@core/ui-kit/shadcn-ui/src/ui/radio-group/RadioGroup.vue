@@ -1,3 +1,14 @@
+<template>
+  <RadioGroupRoot
+    v-slot="slotProps"
+    data-slot="radio-group"
+    :class="cn('grid gap-3', props.class)"
+    v-bind="forwarded"
+  >
+    <slot v-bind="slotProps"></slot>
+  </RadioGroupRoot>
+</template>
+
 <script setup lang="ts">
 import type { RadioGroupRootEmits, RadioGroupRootProps } from 'reka-ui';
 
@@ -17,14 +28,3 @@ const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
-
-<template>
-  <RadioGroupRoot
-    v-slot="slotProps"
-    data-slot="radio-group"
-    :class="cn('grid gap-3', props.class)"
-    v-bind="forwarded"
-  >
-    <slot v-bind="slotProps"></slot>
-  </RadioGroupRoot>
-</template>
