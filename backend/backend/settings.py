@@ -113,13 +113,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'homeops'),
-        'USER': os.environ.get('MYSQL_USER', 'homeops'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'homeops123'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'OPTIONS': {'charset': 'utf8mb4'},  # 防 4 字节 emoji 落库报错 (LLM 输出常见)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'homeops'),
+        'USER': os.environ.get('POSTGRES_USER', 'homeops'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', '123456'),
+        'HOST': "db",
+        'PORT': '5432',
     }
 }
 

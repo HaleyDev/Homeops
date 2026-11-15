@@ -1,6 +1,6 @@
 django==6.1
 django-cors-headers==4.9.0
-mysqlclient==2.2.8
+psycopg[binary]==3.3.9
 djangorestframework==3.18.0
 djangorestframework-simplejwt==5.5.1
 mozilla-django-oidc==5.0.2
@@ -9,6 +9,6 @@ django-structlog==10.1.0
 uwsgi==2.0.31
 google-adk==2.11.0
 google-adk[db,extensions]==2.11.0
-aiomysql==0.2.0
+asyncpg==0.32.0
 python-dotenv==1.1.1
 cryptography==50.0.2

@@ -6,7 +6,7 @@
 
 | 层次 | 技术 |
 | --- | --- |
-| 后端 | Django 6.1 + DRF + SimpleJWT，MySQL 8.4，uWSGI |
+| 后端 | Django 6.1 + DRF + SimpleJWT，PostgreSQL 17 + pgvector，uWSGI |
 | 前端 | Vue 3 + Vite + [Vben Admin](https://vben.pro)（Naive UI），Nginx |
 | 认证 | 账号密码 + GitLab OIDC（mozilla-django-oidc） |
 | 日志 | structlog + django-structlog，DEBUG 下彩色文本，生产 JSON |
@@ -17,16 +17,18 @@
 ```
 backend/    Django 项目（accounts 应用：认证与用户信息接口）
 frontend/   Vben Admin 单页应用（web/ 为业务代码）
-docker/     各服务 Dockerfile 与数据挂载目录（mysql、elasticsearch）
+docker/     各服务 Dockerfile 与数据挂载目录（postgres、elasticsearch）
 docs/       OIDC 登录、前后端改动等设计文档
 ```
 
 ## 快速开始
 
-在项目根目录创建 `.env`（已 gitignore），至少包含：`MYSQL_ROOT_PASSWORD`、`MYSQL_DATABASE`、`MYSQL_USER`、`MYSQL_PASSWORD`、`OIDC_RP_CLIENT_ID`、`OIDC_RP_CLIENT_SECRET`，可选 `LOG_LEVEL`、`ALLOWED_HOSTS`、`FRONTEND_URL` 等。
+在项目根目录创建 `.env`（已 gitignore），至少包含：`POSTGRES_DB`、`POSTGRES_USER`、`POSTGRES_PASSWORD`、`OIDC_RP_CLIENT_ID`、`OIDC_RP_CLIENT_SECRET`，可选 `LOG_LEVEL`、`ALLOWED_HOSTS`、`FRONTEND_URL` 等。
+
+PostgreSQL 数据保存在 `docker/postgres/data`，首次初始化时会自动启用 `vector` 扩展。本配置不读取或迁移旧 MySQL 数据。
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
 - 前端：<http://localhost:9000>
