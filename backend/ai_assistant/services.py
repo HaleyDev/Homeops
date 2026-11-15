@@ -29,9 +29,8 @@ def get_session_service():
 
         db = dj_settings.DATABASES["default"]
         db_url = (
-            f"mysql+aiomysql://{db['USER']}:{quote_plus(db['PASSWORD'])}"
-            f"@{db.get('HOST') or '127.0.0.1'}:{db.get('PORT') or '3306'}/{db['NAME']}"
-            "?charset=utf8mb4"
+            f"postgresql+asyncpg://{quote_plus(db['USER'])}:{quote_plus(db['PASSWORD'])}"
+            f"@{db.get('HOST') or '127.0.0.1'}:{db.get('PORT') or '5432'}/{db['NAME']}"
         )
         _session_service = DatabaseSessionService(db_url, poolclass=NullPool)
     return _session_service

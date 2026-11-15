@@ -4,7 +4,32 @@ from django.test import SimpleTestCase
 
 from system_setting.services import EffectiveModelConfig, ModelConfigurationError
 
-from .services import chat_stream, get_runner
+from .services import chat_stream, get_runner, get_session_service
+
+
+class SessionServiceTests(SimpleTestCase):
+    @patch("google.adk.sessions.DatabaseSessionService")
+    def test_uses_postgresql_asyncpg_url(self, service_class):
+        database = {
+            "NAME": "homeops",
+            "USER": "homeops",
+            "PASSWORD": "secret",
+            "HOST": "db",
+            "PORT": "5432",
+        }
+        with (
+            patch("ai_assistant.services._session_service", None),
+            patch("django.conf.settings.DATABASES", {"default": database}),
+        ):
+            result = get_session_service()
+
+        self.assertIs(result, service_class.return_value)
+        args, kwargs = service_class.call_args
+        self.assertEqual(
+            args[0],
+            "postgresql+asyncpg://homeops:secret@db:5432/homeops",
+        )
+        self.assertEqual(kwargs["poolclass"].__name__, "NullPool")
 
 
 class PerTurnRunnerTests(SimpleTestCase):

@@ -113,13 +113,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'homeops'),
-        'USER': os.environ.get('MYSQL_USER', 'homeops'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'homeops123'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'OPTIONS': {'charset': 'utf8mb4'},  # 防 4 字节 emoji 落库报错 (LLM 输出常见)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'homeops'),
+        'USER': os.environ.get('POSTGRES_USER', 'homeops'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', '123456'),
+        'HOST': "db",
+        'PORT': '5432',
     }
 }
 
@@ -204,6 +203,20 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+
+# Celery：Redis 0 号库传递任务，1 号库存储任务结果。
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get(
+    'CELERY_RESULT_BACKEND', 'redis://localhost:6379/1'
+)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIME_ZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_RESULT_EXPIRES = timedelta(days=1)
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
 # Static files (CSS, JavaScript, Images)
