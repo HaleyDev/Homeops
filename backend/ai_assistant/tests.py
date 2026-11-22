@@ -137,3 +137,11 @@ class PerTurnRunnerTests(SimpleTestCase):
             temperature=0.1,
         )
         self.assertEqual(agent_class.call_args.kwargs["model"], lite_llm.return_value)
+        self.assertEqual(
+            [tool.__name__ for tool in agent_class.call_args.kwargs["tools"]],
+            ["get_server_status", "list_knowledge_bases", "knowledge_search"],
+        )
+        self.assertIn(
+            "必须先调用 list_knowledge_bases",
+            agent_class.call_args.kwargs["instruction"],
+        )

@@ -37,14 +37,14 @@
           </div>
         </section>
         <section>
-          <div class="mb-2 text-sm font-medium">Embedding 模型（2048 维）</div>
+          <div class="mb-2 text-sm font-medium">向量模型（2048 维）</div>
           <NSelect
             v-model:value="selectedEmbeddingModelId"
             :options="selectableEmbeddingModels"
             :loading="loading"
             clearable
             filterable
-            placeholder="请选择已启用的 Embedding 模型"
+            placeholder="请选择已启用的向量模型"
           />
           <div class="mt-3 flex gap-2">
             <NButton
@@ -53,7 +53,7 @@
               :disabled="!selectedEmbeddingModelId || selectionSaving !== null"
               @click="saveSelection('embedding')"
             >
-              保存 Embedding 模型
+              保存向量模型
             </NButton>
             <NButton
               :disabled="!embeddingSelection?.model || selectionSaving !== null"
@@ -65,7 +65,7 @@
         </section>
       </div>
       <NAlert type="warning" class="mt-4" :bordered="false">
-        修改 Embedding 模型不会自动重建已有向量，新处理的文档将使用当前选择。
+        修改向量模型不会自动重建已有向量，新处理的文档将使用当前选择。
       </NAlert>
     </NCard>
 
@@ -351,7 +351,7 @@ const embeddingSelection = computed(() =>
 
 const modelTypeOptions = [
   { label: '文本模型', value: 'text' },
-  { label: 'Embedding 模型', value: 'embedding' },
+  { label: '向量模型', value: 'embedding' },
 ];
 
 function selectableModels(modelType: LLMModelType) {
@@ -444,8 +444,7 @@ const modelColumns: DataTableColumns<LLMModel> = [
   {
     key: 'model_type',
     title: '用途',
-    render: (row) =>
-      row.model_type === 'text' ? '文本模型' : 'Embedding 模型',
+    render: (row) => (row.model_type === 'text' ? '文本模型' : '向量模型'),
   },
   {
     key: 'dimensions',
@@ -463,7 +462,7 @@ const modelColumns: DataTableColumns<LLMModel> = [
             {
               default: () =>
                 row.selected_for === 'embedding'
-                  ? '当前 Embedding 模型'
+                  ? '当前向量模型'
                   : '当前文本模型',
             },
           )
@@ -697,9 +696,7 @@ async function saveSelection(category: LLMModelType) {
       ? selectedTextModelId.value
       : selectedEmbeddingModelId.value;
   if (!modelId) {
-    message.error(
-      category === 'text' ? '请选择文本模型' : '请选择 Embedding 模型',
-    );
+    message.error(category === 'text' ? '请选择文本模型' : '请选择向量模型');
     return;
   }
   selectionSaving.value = category;
@@ -708,7 +705,7 @@ async function saveSelection(category: LLMModelType) {
     message.success(
       category === 'text'
         ? '当前文本模型已更新，将从下一轮对话开始生效'
-        : '当前 Embedding 模型已更新，新处理文档将使用新配置',
+        : '当前向量模型已更新，新处理文档将使用新配置',
     );
     await loadData();
   } finally {
@@ -732,7 +729,7 @@ function clearSelection(category: LLMModelType) {
         message.success(
           category === 'text'
             ? '当前文本模型选择已清除'
-            : '当前 Embedding 模型选择已清除',
+            : '当前向量模型选择已清除',
         );
         await loadData();
       } finally {
