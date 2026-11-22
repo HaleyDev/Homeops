@@ -28,6 +28,7 @@ export interface LLMProviderPayload {
 
 export interface LLMModel {
   created_at: string;
+  dimensions: null | number;
   display_name: string;
   id: number;
   is_active: boolean;
@@ -41,6 +42,7 @@ export interface LLMModel {
 }
 
 export interface LLMModelPayload {
+  dimensions: null | number;
   display_name: string;
   is_active: boolean;
   model_key: string;

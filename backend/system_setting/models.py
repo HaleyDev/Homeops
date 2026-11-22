@@ -10,6 +10,9 @@ class ModelType(models.TextChoices):
     EMBEDDING = "embedding", "Embedding 模型"
 
 
+EMBEDDING_DIMENSIONS = 2048
+
+
 class LLMProvider(models.Model):
     class Protocol(models.TextChoices):
         OPENAI_COMPATIBLE = "openai_compatible", "OpenAI 兼容接口"
@@ -65,6 +68,7 @@ class LLMModel(models.Model):
     model_key = models.CharField(max_length=160)
     display_name = models.CharField(max_length=100)
     model_type = models.CharField(max_length=20, choices=ModelType.choices)
+    dimensions = models.PositiveIntegerField(null=True, blank=True)
     selected_for = models.CharField(
         max_length=20,
         choices=ModelType.choices,
@@ -94,6 +98,14 @@ class LLMModel(models.Model):
                 | Q(selected_for=F("model_type")),
                 name="llm_model_selection_matches_type",
             ),
+            models.CheckConstraint(
+                condition=Q(
+                    model_type=ModelType.EMBEDDING,
+                    dimensions=EMBEDDING_DIMENSIONS,
+                )
+                | Q(model_type=ModelType.TEXT, dimensions__isnull=True),
+                name="llm_model_dimensions_valid",
+            ),
         ]
         verbose_name = "LLM 模型"
         verbose_name_plural = "LLM 模型"
@@ -106,6 +118,21 @@ class LLMModel(models.Model):
 
             raise ValidationError(
                 {"selected_for": "The selection category must match the model type."}
+            )
+        if (
+            self.model_type == ModelType.EMBEDDING
+            and self.dimensions != EMBEDDING_DIMENSIONS
+        ):
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                {"dimensions": "Embedding models must use exactly 2048 dimensions."}
+            )
+        if self.model_type == ModelType.TEXT and self.dimensions is not None:
+            from django.core.exceptions import ValidationError
+
+            raise ValidationError(
+                {"dimensions": "Text models must not configure dimensions."}
             )
 
     def save(self, *args, **kwargs):

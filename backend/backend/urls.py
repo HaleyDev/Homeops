@@ -16,5 +16,6 @@ urlpatterns = [
         path('', include('accounts.urls')),
         path('ai/', include('ai_assistant.urls')),
         path('system-setting/', include('system_setting.urls')),
+        path('', include('knowledge.urls')),
     ])),
 ]

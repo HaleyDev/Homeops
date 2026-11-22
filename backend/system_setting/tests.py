@@ -59,6 +59,8 @@ class LLMConfigurationTestCase(TestCase):
             "parameters": {"temperature": 0.2},
         }
         values.update(kwargs)
+        if values["model_type"] == ModelType.EMBEDDING:
+            values.setdefault("dimensions", 2048)
         return LLMModel.objects.create(**values)
 
     def test_selection_switches_provider_and_clears_old_label(self):
@@ -104,10 +106,45 @@ class LLMConfigurationTestCase(TestCase):
 
         config = get_effective_model_config(ModelType.TEXT)
 
+        self.assertEqual(config.model_id, model.id)
+        self.assertEqual(config.provider_id, self.provider.id)
         self.assertEqual(config.model_key, "model-a")
+        self.assertIsNone(config.dimensions)
         self.assertEqual(config.api_key, "test-secret")
         self.assertEqual(config.parameters, {"temperature": 0.2})
         self.assertNotIn("test-secret", repr(config))
+
+    def test_embedding_dimensions_are_validated_and_exposed(self):
+        model = self.create_model(
+            model_key="embedding-a",
+            model_type=ModelType.EMBEDDING,
+        )
+        select_model(ModelType.EMBEDDING, model.id)
+        config = get_effective_model_config(ModelType.EMBEDDING)
+        self.assertEqual(config.dimensions, 2048)
+        self.assertEqual(config.model_id, model.id)
+
+        self.client.force_authenticate(self.admin)
+        response = self.client.post(
+            "/api/system-setting/llm/models/",
+            {
+                "provider": self.provider.id,
+                "model_key": "invalid-embedding",
+                "display_name": "invalid-embedding",
+                "model_type": ModelType.EMBEDDING,
+                "dimensions": 1024,
+                "parameters": {},
+                "is_active": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+        response = self.client.patch(
+            f"/api/system-setting/llm/models/{model.id}/",
+            {"dimensions": 1024},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
 
     def test_missing_effective_config_returns_safe_message(self):
         with self.assertRaisesMessage(
