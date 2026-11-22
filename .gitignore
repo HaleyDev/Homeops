@@ -82,7 +82,6 @@ skills-lock.json
 .atomcode
 datalog
 .playwright-mcp
-docs/*
 backend/.vscode/*
 docker/elasticsearch/*
 backend/.env
