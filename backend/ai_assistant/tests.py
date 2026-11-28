@@ -123,9 +123,15 @@ class PerTurnRunnerTests(SimpleTestCase):
         self.assertIn("Text model is not configured. Contact an administrator.", frames[1])
         self.assertEqual(len(frames), 2)
 
+    @patch("ai_assistant.agent.agent.create_skill_hub_agent")
     @patch("ai_assistant.agent.agent.Agent")
     @patch("ai_assistant.agent.agent.LiteLlm")
-    def test_agent_uses_configuration_snapshot(self, lite_llm, agent_class):
+    def test_agent_uses_configuration_snapshot(
+        self,
+        lite_llm,
+        agent_class,
+        create_skill_hub_agent,
+    ):
         from .agent.agent import create_agent
 
         create_agent(self.first_config)
@@ -143,5 +149,14 @@ class PerTurnRunnerTests(SimpleTestCase):
         )
         self.assertIn(
             "必须先调用 list_knowledge_bases",
+            agent_class.call_args.kwargs["instruction"],
+        )
+        create_skill_hub_agent.assert_called_once_with(lite_llm.return_value)
+        self.assertEqual(
+            agent_class.call_args.kwargs["sub_agents"],
+            [create_skill_hub_agent.return_value],
+        )
+        self.assertIn(
+            "skill_hub_assistant",
             agent_class.call_args.kwargs["instruction"],
         )

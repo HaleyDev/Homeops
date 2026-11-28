@@ -16,6 +16,7 @@
     "workspace": "工作台"
   },
   "aiAssistant": "AI 助手",
+  "skillHub": "Skill Hub",
   "systemSetting": "系统设置",
   "modelProviderConfig": "模型供应商配置",
   "knowledgeBaseSetting": "知识库设置"

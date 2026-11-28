@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'ai_assistant',
     'system_setting',
     'knowledge',
+    'skill_hub',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -267,6 +268,12 @@ KNOWLEDGE_PROCESSING_STALE_SECONDS = int(
     os.environ.get('KNOWLEDGE_PROCESSING_STALE_SECONDS', 2160)
 )
 KNOWLEDGE_UPLOADED_STALE_SECONDS = 300
+
+
+# Skill Hub：规范化 ZIP 的存储根目录（只有 backend 挂载，CELERY 不参与）。
+SKILL_HUB_ROOT = os.environ.get(
+    'SKILL_HUB_ROOT', str(BASE_DIR / 'data' / 'skill-hub')
+)
 
 
 # Static files (CSS, JavaScript, Images)
