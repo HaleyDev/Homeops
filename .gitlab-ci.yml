@@ -11,8 +11,6 @@ stages:
 
 variables:
   REGISTRY: 192.168.199.123:2233
-  BACKEND_IMAGE: $REGISTRY/homeops/homeops-backend:latest
-  FRONTEND_IMAGE: $REGISTRY/homeops/homeops-frontend:latest
   GIT_CLEAN_FLAGS: -ffdx -e docker/mysql/ -e docker/postgres/data/ -e docker/redis/data/
 
 workflow:
@@ -27,7 +25,4 @@ build-and-push:
     - if: $CI_PIPELINE_SOURCE == "web"
     - if: $CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"
   script:
-    - docker build -f docker/backend/Dockerfile -t $BACKEND_IMAGE backend
-    - docker build -f docker/frontend/Dockerfile -t $FRONTEND_IMAGE frontend
-    - docker push $BACKEND_IMAGE
-    - docker push $FRONTEND_IMAGE
+    - make release
