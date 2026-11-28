@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'accounts',
     'ai_assistant',
     'system_setting',
+    'knowledge',
+    'skill_hub',
 ]
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -113,13 +115,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'homeops'),
-        'USER': os.environ.get('MYSQL_USER', 'homeops'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', 'homeops123'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
-        'OPTIONS': {'charset': 'utf8mb4'},  # 防 4 字节 emoji 落库报错 (LLM 输出常见)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'homeops'),
+        'USER': os.environ.get('POSTGRES_USER', 'homeops'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', '123456'),
+        'HOST': "db",
+        'PORT': '5432',
     }
 }
 
@@ -204,6 +205,75 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+
+# Celery：Redis 0 号库传递任务，1 号库存储任务结果。
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get(
+    'CELERY_RESULT_BACKEND', 'redis://localhost:6379/1'
+)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIME_ZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_RESULT_EXPIRES = timedelta(days=1)
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_ROUTES = {
+    'knowledge.document.vectorize': {'queue': 'knowledge'},
+    'knowledge.document.recover_stale': {'queue': 'knowledge'},
+}
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_BEAT_SCHEDULE = {
+    'knowledge-document-recover-stale': {
+        'task': 'knowledge.document.recover_stale',
+        'schedule': 60.0,
+    },
+}
+
+
+# 知识库原始文件：大文件由 Django 写入临时文件，业务层再流式校验和落盘。
+KNOWLEDGE_UPLOAD_ROOT = os.environ.get(
+    'KNOWLEDGE_UPLOAD_ROOT', str(BASE_DIR / 'data' / 'knowledge')
+)
+KNOWLEDGE_MAX_FILE_SIZE = int(
+    os.environ.get('KNOWLEDGE_MAX_FILE_SIZE', 20 * 1024 * 1024)
+)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 4 * 1024 * 1024
+KNOWLEDGE_EMBEDDING_DIMENSIONS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_DIMENSIONS', 2048)
+)
+if KNOWLEDGE_EMBEDDING_DIMENSIONS != 2048:
+    raise ValueError('KNOWLEDGE_EMBEDDING_DIMENSIONS must remain 2048.')
+KNOWLEDGE_CHUNK_SIZE = int(os.environ.get('KNOWLEDGE_CHUNK_SIZE', 800))
+KNOWLEDGE_CHUNK_OVERLAP = int(os.environ.get('KNOWLEDGE_CHUNK_OVERLAP', 100))
+KNOWLEDGE_EMBEDDING_BATCH_SIZE = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_BATCH_SIZE', 10)
+)
+KNOWLEDGE_MAX_CHUNKS_PER_DOCUMENT = int(
+    os.environ.get('KNOWLEDGE_MAX_CHUNKS_PER_DOCUMENT', 5000)
+)
+KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_TIMEOUT_SECONDS', 60)
+)
+KNOWLEDGE_EMBEDDING_MAX_ATTEMPTS = int(
+    os.environ.get('KNOWLEDGE_EMBEDDING_MAX_ATTEMPTS', 3)
+)
+KNOWLEDGE_EMBEDDING_MAX_RESPONSE_BYTES = 32 * 1024 * 1024
+KNOWLEDGE_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get('KNOWLEDGE_TASK_SOFT_TIME_LIMIT', 1800)
+)
+KNOWLEDGE_TASK_TIME_LIMIT = int(os.environ.get('KNOWLEDGE_TASK_TIME_LIMIT', 1860))
+KNOWLEDGE_PROCESSING_STALE_SECONDS = int(
+    os.environ.get('KNOWLEDGE_PROCESSING_STALE_SECONDS', 2160)
+)
+KNOWLEDGE_UPLOADED_STALE_SECONDS = 300
+
+
+# Skill Hub：规范化 ZIP 的存储根目录（只有 backend 挂载，CELERY 不参与）。
+SKILL_HUB_ROOT = os.environ.get(
+    'SKILL_HUB_ROOT', str(BASE_DIR / 'data' / 'skill-hub')
+)
 
 
 # Static files (CSS, JavaScript, Images)

@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .crypto import APIKeyEncryptionError, encrypt_api_key
-from .models import LLMModel, LLMProvider
+from .models import EMBEDDING_DIMENSIONS, LLMModel, LLMProvider, ModelType
 from .validators import validate_base_url, validate_non_sensitive_config
 
 
@@ -138,6 +138,7 @@ class LLMModelSerializer(serializers.ModelSerializer):
             "model_key",
             "display_name",
             "model_type",
+            "dimensions",
             "selected_for",
             "parameters",
             "is_active",
@@ -150,6 +151,22 @@ class LLMModelSerializer(serializers.ModelSerializer):
         return _validate_config(value)
 
     def validate(self, attrs):
+        model_type = attrs.get(
+            "model_type",
+            self.instance.model_type if self.instance is not None else None,
+        )
+        dimensions = attrs.get(
+            "dimensions",
+            self.instance.dimensions if self.instance is not None else None,
+        )
+        if model_type == ModelType.EMBEDDING and dimensions != EMBEDDING_DIMENSIONS:
+            raise serializers.ValidationError(
+                {"dimensions": "Embedding models must use exactly 2048 dimensions."}
+            )
+        if model_type == ModelType.TEXT and dimensions is not None:
+            raise serializers.ValidationError(
+                {"dimensions": "Text models must not configure dimensions."}
+            )
         if self.instance is None:
             return attrs
         selected_for = self.instance.selected_for

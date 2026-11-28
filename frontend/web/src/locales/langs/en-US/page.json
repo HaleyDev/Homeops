@@ -16,5 +16,8 @@
     "workspace": "Workspace"
   },
   "aiAssistant": "AI Assistant",
-  "systemSetting": "System Settings"
+  "skillHub": "Skill Hub",
+  "systemSetting": "System Settings",
+  "modelProviderConfig": "Model Provider Configuration",
+  "knowledgeBaseSetting": "Knowledge Base Settings"
 }

@@ -1,42 +1,72 @@
 <template>
   <div class="p-5">
     <div class="mb-6">
-      <h1 class="text-2xl font-semibold">大模型配置</h1>
+      <h1 class="text-2xl font-semibold">模型供应商配置</h1>
       <p class="text-muted-foreground mt-2 text-sm">
         管理全局供应商和模型，配置变更从下一轮对话开始生效
       </p>
     </div>
 
     <NCard title="当前选择" class="mb-5">
-      <div class="flex flex-col gap-3 md:flex-row md:items-end">
-        <div class="flex-1">
+      <div class="grid gap-5 lg:grid-cols-2">
+        <section>
           <div class="mb-2 text-sm font-medium">文本模型</div>
           <NSelect
-            v-model:value="selectedModelId"
+            v-model:value="selectedTextModelId"
             :options="selectableTextModels"
             :loading="loading"
             clearable
             filterable
             placeholder="请选择已启用的文本模型"
           />
-        </div>
-        <div class="flex gap-2">
-          <NButton
-            type="primary"
-            :loading="saving"
-            :disabled="!selectedModelId"
-            @click="saveSelection"
-          >
-            保存选择
-          </NButton>
-          <NButton :disabled="!textSelection?.model" @click="clearSelection">
-            取消当前选择
-          </NButton>
-        </div>
+          <div class="mt-3 flex gap-2">
+            <NButton
+              type="primary"
+              :loading="selectionSaving === 'text'"
+              :disabled="!selectedTextModelId || selectionSaving !== null"
+              @click="saveSelection('text')"
+            >
+              保存文本模型
+            </NButton>
+            <NButton
+              :disabled="!textSelection?.model || selectionSaving !== null"
+              @click="clearSelection('text')"
+            >
+              取消当前选择
+            </NButton>
+          </div>
+        </section>
+        <section>
+          <div class="mb-2 text-sm font-medium">向量模型（2048 维）</div>
+          <NSelect
+            v-model:value="selectedEmbeddingModelId"
+            :options="selectableEmbeddingModels"
+            :loading="loading"
+            clearable
+            filterable
+            placeholder="请选择已启用的向量模型"
+          />
+          <div class="mt-3 flex gap-2">
+            <NButton
+              type="primary"
+              :loading="selectionSaving === 'embedding'"
+              :disabled="!selectedEmbeddingModelId || selectionSaving !== null"
+              @click="saveSelection('embedding')"
+            >
+              保存向量模型
+            </NButton>
+            <NButton
+              :disabled="!embeddingSelection?.model || selectionSaving !== null"
+              @click="clearSelection('embedding')"
+            >
+              取消当前选择
+            </NButton>
+          </div>
+        </section>
       </div>
-      <div class="text-muted-foreground mt-3 text-xs">
-        Embedding 配置能力已在接口中预留，本期页面仅开放文本模型选择。
-      </div>
+      <NAlert type="warning" class="mt-4" :bordered="false">
+        修改向量模型不会自动重建已有向量，新处理的文档将使用当前选择。
+      </NAlert>
     </NCard>
 
     <NCard title="供应商管理" class="mb-5">
@@ -136,8 +166,8 @@
         <div class="flex justify-end gap-2">
           <NButton @click="providerModalVisible = false">取消</NButton>
           <NButton type="primary" :loading="saving" @click="saveProvider">
-保存
-</NButton>
+            保存
+          </NButton>
         </div>
       </template>
     </NModal>
@@ -175,15 +205,22 @@
             />
           </NFormItem>
         </div>
-        <NFormItem label="模型用途">
-          <NInput value="文本模型" disabled />
+        <NFormItem label="模型用途" path="model_type">
+          <NSelect
+            v-model:value="modelForm.model_type"
+            :options="modelTypeOptions"
+            :disabled="!!modelForm.id && !!modelForm.selected_for"
+          />
+        </NFormItem>
+        <NFormItem v-if="modelForm.model_type === 'embedding'" label="向量维度">
+          <NInput value="2048（固定）" disabled />
         </NFormItem>
         <NFormItem label="非敏感模型参数（JSON）">
           <NInput
             v-model:value="modelForm.parametersText"
             type="textarea"
             :autosize="{ minRows: 3, maxRows: 8 }"
-            placeholder="{&quot;temperature&quot;: 0.7}"
+            placeholder='{"temperature": 0.7}'
           />
         </NFormItem>
         <NFormItem label="启用模型">
@@ -194,8 +231,8 @@
         <div class="flex justify-end gap-2">
           <NButton @click="modelModalVisible = false">取消</NButton>
           <NButton type="primary" :loading="saving" @click="saveModel">
-保存
-</NButton>
+            保存
+          </NButton>
         </div>
       </template>
     </NModal>
@@ -205,11 +242,17 @@
 <script setup lang="ts">
 import type { DataTableColumns, FormInst, FormRules } from 'naive-ui';
 
-import type { LLMModel, LLMProvider, LLMSelection } from '#/api/system-setting';
+import type {
+  LLMModel,
+  LLMModelType,
+  LLMProvider,
+  LLMSelection,
+} from '#/api/system-setting';
 
-import { computed, h, onMounted, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref, watch } from 'vue';
 
 import {
+  NAlert,
   NButton,
   NCard,
   NDataTable,
@@ -242,7 +285,9 @@ const saving = ref(false);
 const providers = ref<LLMProvider[]>([]);
 const models = ref<LLMModel[]>([]);
 const selections = ref<LLMSelection[]>([]);
-const selectedModelId = ref<null | number>(null);
+const selectedTextModelId = ref<null | number>(null);
+const selectedEmbeddingModelId = ref<null | number>(null);
+const selectionSaving = ref<LLMModelType | null>(null);
 
 const providerModalVisible = ref(false);
 const modelModalVisible = ref(false);
@@ -266,7 +311,9 @@ const modelForm = reactive({
   id: null as null | number,
   is_active: true,
   model_key: '',
-  model_type: 'text' as const,
+  model_type: 'text' as LLMModelType,
+  dimensions: null as null | number,
+  selected_for: null as LLMModelType | null,
   parametersText: '{}',
   provider: null as null | number,
 });
@@ -298,8 +345,16 @@ const providerOptions = computed(() =>
 const textSelection = computed(() =>
   selections.value.find((selection) => selection.category === 'text'),
 );
+const embeddingSelection = computed(() =>
+  selections.value.find((selection) => selection.category === 'embedding'),
+);
 
-const selectableTextModels = computed(() => {
+const modelTypeOptions = [
+  { label: '文本模型', value: 'text' },
+  { label: '向量模型', value: 'embedding' },
+];
+
+function selectableModels(modelType: LLMModelType) {
   const activeProviderIds = new Set(
     providers.value
       .filter((provider) => provider.is_active)
@@ -308,7 +363,7 @@ const selectableTextModels = computed(() => {
   return models.value
     .filter(
       (model) =>
-        model.model_type === 'text' &&
+        model.model_type === modelType &&
         model.is_active &&
         activeProviderIds.has(model.provider),
     )
@@ -316,7 +371,17 @@ const selectableTextModels = computed(() => {
       label: `${model.provider_name} / ${model.display_name}（${model.model_key}）`,
       value: model.id,
     }));
-});
+}
+
+const selectableTextModels = computed(() => selectableModels('text'));
+const selectableEmbeddingModels = computed(() => selectableModels('embedding'));
+
+watch(
+  () => modelForm.model_type,
+  (modelType) => {
+    modelForm.dimensions = modelType === 'embedding' ? 2048 : null;
+  },
+);
 
 const providerColumns: DataTableColumns<LLMProvider> = [
   { key: 'name', title: '名称' },
@@ -379,8 +444,12 @@ const modelColumns: DataTableColumns<LLMModel> = [
   {
     key: 'model_type',
     title: '用途',
-    render: (row) =>
-      row.model_type === 'text' ? '文本模型' : 'Embedding 模型',
+    render: (row) => (row.model_type === 'text' ? '文本模型' : '向量模型'),
+  },
+  {
+    key: 'dimensions',
+    title: '向量维度',
+    render: (row) => (row.model_type === 'embedding' ? row.dimensions : '—'),
   },
   {
     key: 'selected_for',
@@ -390,7 +459,12 @@ const modelColumns: DataTableColumns<LLMModel> = [
         ? h(
             NTag,
             { size: 'small', type: 'success' },
-            { default: () => '当前文本模型' },
+            {
+              default: () =>
+                row.selected_for === 'embedding'
+                  ? '当前向量模型'
+                  : '当前文本模型',
+            },
           )
         : '—',
   },
@@ -455,7 +529,9 @@ async function loadData() {
       getLLMModelsApi(),
       getLLMSelectionsApi(),
     ]);
-    selectedModelId.value = textSelection.value?.model?.id ?? null;
+    selectedTextModelId.value = textSelection.value?.model?.id ?? null;
+    selectedEmbeddingModelId.value =
+      embeddingSelection.value?.model?.id ?? null;
   } finally {
     loading.value = false;
   }
@@ -545,6 +621,8 @@ function openModelCreate() {
     is_active: true,
     model_key: '',
     model_type: 'text',
+    dimensions: null,
+    selected_for: null,
     parametersText: '{}',
     provider:
       providers.value.find((provider) => provider.is_active)?.id ?? null,
@@ -559,6 +637,8 @@ function openModelEdit(model: LLMModel) {
     is_active: model.is_active,
     model_key: model.model_key,
     model_type: model.model_type,
+    dimensions: model.dimensions,
+    selected_for: model.selected_for,
     parametersText: JSON.stringify(model.parameters, null, 2),
     provider: model.provider,
   });
@@ -577,6 +657,7 @@ async function saveModel() {
       is_active: modelForm.is_active,
       model_key: modelForm.model_key,
       model_type: modelForm.model_type,
+      dimensions: modelForm.model_type === 'embedding' ? 2048 : null,
       parameters: parseObject(modelForm.parametersText),
       provider: modelForm.provider,
     };
@@ -609,31 +690,51 @@ function confirmModelDelete(model: LLMModel) {
   });
 }
 
-async function saveSelection() {
-  if (!selectedModelId.value) {
-    message.error('请选择文本模型');
+async function saveSelection(category: LLMModelType) {
+  const modelId =
+    category === 'text'
+      ? selectedTextModelId.value
+      : selectedEmbeddingModelId.value;
+  if (!modelId) {
+    message.error(category === 'text' ? '请选择文本模型' : '请选择向量模型');
     return;
   }
-  saving.value = true;
+  selectionSaving.value = category;
   try {
-    await selectLLMModelApi('text', selectedModelId.value);
-    message.success('当前文本模型已更新，将从下一轮对话开始生效');
+    await selectLLMModelApi(category, modelId);
+    message.success(
+      category === 'text'
+        ? '当前文本模型已更新，将从下一轮对话开始生效'
+        : '当前向量模型已更新，新处理文档将使用新配置',
+    );
     await loadData();
   } finally {
-    saving.value = false;
+    selectionSaving.value = null;
   }
 }
 
-function clearSelection() {
+function clearSelection(category: LLMModelType) {
   dialog.warning({
     title: '清除当前选择',
-    content: '清除后文本对话将不可用，确认继续吗？',
+    content:
+      category === 'text'
+        ? '清除后文本对话将不可用，确认继续吗？'
+        : '清除后新上传文档将无法向量化，确认继续吗？',
     positiveText: '清除',
     negativeText: '取消',
     onPositiveClick: async () => {
-      await clearLLMSelectionApi('text');
-      message.success('当前文本模型选择已清除');
-      await loadData();
+      selectionSaving.value = category;
+      try {
+        await clearLLMSelectionApi(category);
+        message.success(
+          category === 'text'
+            ? '当前文本模型选择已清除'
+            : '当前向量模型选择已清除',
+        );
+        await loadData();
+      } finally {
+        selectionSaving.value = null;
+      }
     },
   });
 }

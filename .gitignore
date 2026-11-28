@@ -1,4 +1,10 @@
+# 数据库运行数据（初始化脚本需要提交）
 docker/mysql/*
+docker/postgres/data/*
+docker/redis/data/*
+docker/knowledge/*
+backend/data/knowledge/*
+backend/data/skill-hub/*
 
 /.env
 
@@ -77,7 +83,7 @@ skills-lock.json
 .atomcode
 datalog
 .playwright-mcp
-docs/*
 backend/.vscode/*
 docker/elasticsearch/*
 backend/.env
+.qoder/*

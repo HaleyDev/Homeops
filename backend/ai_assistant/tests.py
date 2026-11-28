@@ -4,24 +4,55 @@ from django.test import SimpleTestCase
 
 from system_setting.services import EffectiveModelConfig, ModelConfigurationError
 
-from .services import chat_stream, get_runner
+from .services import chat_stream, get_runner, get_session_service
+
+
+class SessionServiceTests(SimpleTestCase):
+    @patch("google.adk.sessions.DatabaseSessionService")
+    def test_uses_postgresql_asyncpg_url(self, service_class):
+        database = {
+            "NAME": "homeops",
+            "USER": "homeops",
+            "PASSWORD": "secret",
+            "HOST": "db",
+            "PORT": "5432",
+        }
+        with (
+            patch("ai_assistant.services._session_service", None),
+            patch("django.conf.settings.DATABASES", {"default": database}),
+        ):
+            result = get_session_service()
+
+        self.assertIs(result, service_class.return_value)
+        args, kwargs = service_class.call_args
+        self.assertEqual(
+            args[0],
+            "postgresql+asyncpg://homeops:secret@db:5432/homeops",
+        )
+        self.assertEqual(kwargs["poolclass"].__name__, "NullPool")
 
 
 class PerTurnRunnerTests(SimpleTestCase):
     def setUp(self):
         self.first_config = EffectiveModelConfig(
+            model_id=1,
+            provider_id=1,
             model_key="model-a",
             model_type="text",
             protocol="openai_compatible",
             base_url="https://a.example.com/v1",
+            dimensions=None,
             api_key="secret-a",
             parameters={"temperature": 0.1},
         )
         self.second_config = EffectiveModelConfig(
+            model_id=2,
+            provider_id=2,
             model_key="model-b",
             model_type="text",
             protocol="openai_compatible",
             base_url="https://b.example.com/v1",
+            dimensions=None,
             api_key="secret-b",
             parameters={"temperature": 0.9},
         )
@@ -92,9 +123,15 @@ class PerTurnRunnerTests(SimpleTestCase):
         self.assertIn("Text model is not configured. Contact an administrator.", frames[1])
         self.assertEqual(len(frames), 2)
 
+    @patch("ai_assistant.agent.agent.create_skill_hub_agent")
     @patch("ai_assistant.agent.agent.Agent")
     @patch("ai_assistant.agent.agent.LiteLlm")
-    def test_agent_uses_configuration_snapshot(self, lite_llm, agent_class):
+    def test_agent_uses_configuration_snapshot(
+        self,
+        lite_llm,
+        agent_class,
+        create_skill_hub_agent,
+    ):
         from .agent.agent import create_agent
 
         create_agent(self.first_config)
@@ -106,3 +143,20 @@ class PerTurnRunnerTests(SimpleTestCase):
             temperature=0.1,
         )
         self.assertEqual(agent_class.call_args.kwargs["model"], lite_llm.return_value)
+        self.assertEqual(
+            [tool.__name__ for tool in agent_class.call_args.kwargs["tools"]],
+            ["get_server_status", "list_knowledge_bases", "knowledge_search"],
+        )
+        self.assertIn(
+            "必须先调用 list_knowledge_bases",
+            agent_class.call_args.kwargs["instruction"],
+        )
+        create_skill_hub_agent.assert_called_once_with(lite_llm.return_value)
+        self.assertEqual(
+            agent_class.call_args.kwargs["sub_agents"],
+            [create_skill_hub_agent.return_value],
+        )
+        self.assertIn(
+            "skill_hub_assistant",
+            agent_class.call_args.kwargs["instruction"],
+        )

@@ -11,13 +11,12 @@ COPY requirements.txt .
 RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
-        gcc pkg-config default-libmysqlclient-dev \
+        gcc libc6-dev pkg-config \
     && pip install --no-cache-dir \
         -i https://mirrors.aliyun.com/pypi/simple/ \
         -r requirements.txt \
-    && apt-get purge -y gcc pkg-config libmariadb-dev default-libmysqlclient-dev \
+    && apt-get purge -y gcc libc6-dev pkg-config \
     && apt-get autoremove -y \
-    && apt-get install -y --no-install-recommends libmariadb3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
