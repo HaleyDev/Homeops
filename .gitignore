@@ -4,6 +4,7 @@ docker/postgres/data/*
 docker/redis/data/*
 docker/knowledge/*
 backend/data/knowledge/*
+backend/data/skill-hub/*
 
 /.env
 
@@ -85,3 +86,4 @@ datalog
 backend/.vscode/*
 docker/elasticsearch/*
 backend/.env
+.qoder/*

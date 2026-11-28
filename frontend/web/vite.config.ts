@@ -12,6 +12,10 @@ export default defineConfig(async () => {
             target: 'http://localhost:8000',
             ws: true,
           },
+          '/.well-known/skills/': {
+            changeOrigin: true,
+            target: 'http://localhost:8000',
+          },
         },
       },
     },
